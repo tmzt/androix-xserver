@@ -6,6 +6,10 @@ if XFAKESERVER
 XFAKE_SUBDIRS = fake
 endif
 
+if XFAKELIB
+XFAKELIB_SUBDIRS = fakelib
+endif
+
 if XEPHYR
 XEPHYR_SUBDIRS = ephyr
 endif
