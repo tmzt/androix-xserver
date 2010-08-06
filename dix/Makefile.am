@@ -1,9 +1,12 @@
-noinst_LTLIBRARIES = libdix.la libmain.la
+noinst_LTLIBRARIES = libdix.la libmain.la libmainlib.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
 libmain_la_SOURCES =    \
 	main.c
+
+libmainlib_la_SOURCES =	\
+	mainlib.c
 
 libdix_la_SOURCES = 	\
 	atom.c		\
