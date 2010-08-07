@@ -1,6 +1,6 @@
-INCLUDES = 					\
-	@KDRIVE_INCS@				\
-	@KDRIVE_CFLAGS@
+#INCLUDES = 					\
+#	@KDRIVE_INCS@				\
+#	@KDRIVE_CFLAGS@
 
 noinst_LTLIBRARIES = libfakelib.la
 
@@ -8,12 +8,21 @@ lib_LTLIBRARIES = libxfakelib.la
 
 bin_PROGRAMS = Xfakelib
 
+libfakelib_la_CFLAGS = 	\
+	@KDRIVE_INCS@		\
+	@KDRIVE_CFLAGS@	
+
 libfakelib_la_SOURCES =	\
-	fakelib.c		\
+	fakelib.c	\
 	kbd.c		\
 	os.c		\
 	mouse.c		\
 	fake.h
+
+libxfakelib_la_CFLAGS =        \
+        @KDRIVE_INCS@           \
+	@XFAKELIB_CFLAGS@
+
 
 libxfakelib_la_SOURCES = \
 	fakelibinit.c
