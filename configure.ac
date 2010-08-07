@@ -2038,6 +2038,11 @@ if test "$KDRIVE" = yes; then
         AC_DEFINE(KDRIVEFBDEV, 1, [Build fbdev-based kdrive server])
     fi
 
+    if test "x$XFAKELIB" = xyes; then
+        XFAKELIB=yes
+        AC_DEFINE(KFAKELIB, 1, [Build kdrive-based fakelib server library])
+    fi
+
 
     PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
     if test "x$HAVE_TSLIB" = xno; then

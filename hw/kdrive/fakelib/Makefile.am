@@ -14,7 +14,7 @@ libfakelib_la_SOURCES =	\
 	fake.h
 
 Xfakelib_SOURCES = \
-	fakeinit.c
+	fakelibinit.c
 
 Xfakelib_LDADD = 						\
 	libfakelib.la					\

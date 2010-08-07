@@ -120,7 +120,8 @@ extern void Dispatch(void);
 
 extern void InitProcVectors(void);
 
-#ifdef XQUARTZ
+#if defined(XQUARTZ)||defined(XFAKELIB)
+#error XFAKELIB
 #include <pthread.h>
 
 BOOL serverInitComplete = FALSE;
