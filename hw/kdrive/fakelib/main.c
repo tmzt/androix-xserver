@@ -23,6 +23,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <unistd.h>
 #include <stdio.h>
 
+extern int dix_main(int argc, char *argv[], char *envp[]);
+
 int main(int argc, char *argv[], char *envp[])
 {
 	fprintf(stderr, "[xfakelib main] starting dix_main in main thread\n");

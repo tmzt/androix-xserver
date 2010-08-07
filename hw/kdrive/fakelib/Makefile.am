@@ -19,14 +19,13 @@ libxfakelib_la_SOURCES = \
 	fakelibinit.c
 
 libxfakelib_la_LIBADD = \
-	libfakelib.la
-	$(top_builddir)/dix/libmainlib.la
-	@XFAKELIB_LOCAL_LIBS@
+	libfakelib.la	\
+	@XFAKELIB_LIBS@
 
 libxfakelib_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 libxfakelib_la_DEPENDENCIES = \
-	libfakelib.la
+	libfakelib.la		\
 	@XFAKELIB_LOCAL_LIBS@
 
 Xfakelib_SOURCES = \
