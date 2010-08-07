@@ -6,7 +6,7 @@ noinst_LTLIBRARIES = libfakelib.la
 
 lib_LTLIBRARIES = libxfakelib.la
 
-bin_PROGRAMS = Xfakelib
+bin_PROGRAMS = Xfakelib Xfakelibthreaded
 
 libfakelib_la_CFLAGS = 	\
 	@KDRIVE_INCS@		\
@@ -40,6 +40,11 @@ Xfakelib_SOURCES = \
 	main.c
 
 Xfakelib_LDFLAGS = -lxfakelib
+
+Xfakelibthreaded_SOURCES = \
+        main6.c
+
+Xfakelibthreaded_LDFLAGS = -lxfakelib
 
 relink:
 	$(AM_V_at)rm -f $(bin_PROGRAMS) && $(MAKE) $(bin_PROGRAMS)
