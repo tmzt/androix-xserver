@@ -14,11 +14,12 @@ libfakelib_la_SOURCES =	\
 	fake.h
 
 Xfakelib_SOURCES = \
-	fakelibinit.c
+	fakelibinit.c	\
+	main.c
 
 Xfakelib_LDADD = 						\
 	libfakelib.la					\
-	@KDRIVE_LIBS@
+	@XFAKELIB_LIBS@
 
 Xfakelib_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 

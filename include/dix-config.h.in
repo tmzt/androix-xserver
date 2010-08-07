@@ -33,6 +33,9 @@
 /* Build for darwin with Quartz support */
 #undef DARWIN_WITH_QUARTZ
 
+/* Build kdrive-based fakelib server library */
+#undef XFAKELIB
+
 /* Use OsVendorVErrorF */
 #undef DDXOSVERRORF
 
