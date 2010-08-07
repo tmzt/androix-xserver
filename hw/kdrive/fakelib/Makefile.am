@@ -13,6 +13,7 @@ libfakelib_la_CFLAGS = 	\
 	@KDRIVE_CFLAGS@	
 
 libfakelib_la_SOURCES =	\
+	fakelibinit.c	\
 	fakelib.c	\
 	kbd.c		\
 	os.c		\
@@ -23,9 +24,7 @@ libxfakelib_la_CFLAGS =        \
         @KDRIVE_INCS@           \
 	@XFAKELIB_CFLAGS@
 
-
-libxfakelib_la_SOURCES = \
-	fakelibinit.c
+libxfakelib_la_SOURCES =
 
 libxfakelib_la_LIBADD = \
 	libfakelib.la	\
