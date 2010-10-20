@@ -113,9 +113,6 @@ SOFTWARE.
 
 #define Pid_t pid_t
 
-#ifdef DNETCONN
-#include <netdnet/dn.h>
-#endif /* DNETCONN */
 
 #ifdef HAS_GETPEERUCRED
 # include <ucred.h>
@@ -146,6 +143,8 @@ Bool NewOutputPending;		/* not yet attempted to write some new output */
 Bool AnyClientsWriteBlocked;	/* true if some client blocked on write */
 
 static Bool RunFromSmartParent;	/* send SIGUSR1 to parent process */
+Bool RunFromSigStopParent;	/* send SIGSTOP to our own process; Upstart (or
+				   equivalent) will send SIGCONT back. */
 Bool PartialNetwork;	/* continue even if unable to bind all addrs */
 static Pid_t ParentProcess;
 
@@ -357,6 +356,8 @@ NotifyParentProcess(void)
 	    kill (ParentProcess, SIGUSR1);
 	}
     }
+    if (RunFromSigStopParent)
+	raise (SIGSTOP);
 #endif
 }
 
@@ -517,7 +518,7 @@ AuthAudit (ClientPtr client, Bool letin,
 #endif
 	    strcpy(out, "local host");
 	    break;
-#if defined(TCPCONN) || defined(STREAMSCONN) || defined(MNX_TCPCONN)
+#if defined(TCPCONN) || defined(STREAMSCONN)
 	case AF_INET:
 	    sprintf(out, "IP %s",
 		inet_ntoa(((struct sockaddr_in *) saddr)->sin_addr));
@@ -531,12 +532,6 @@ AuthAudit (ClientPtr client, Bool letin,
 	}
 	    break;
 #endif
-#endif
-#ifdef DNETCONN
-	case AF_DECnet:
-	    sprintf(out, "DN %s",
-		    dnet_ntoa(&((struct sockaddr_dn *) saddr)->sdn_add));
-	    break;
 #endif
 	default:
 	    strcpy(out, "unknown address");
@@ -1032,6 +1027,9 @@ void
 CloseDownConnection(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
+
+    if (FlushCallback)
+	CallCallbacks(&FlushCallback, NULL);
 
     if (oc->output && oc->output->count)
 	FlushClient(client, oc, (char *)NULL, 0);

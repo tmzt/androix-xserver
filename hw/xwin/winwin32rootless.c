@@ -41,7 +41,6 @@
 #include <X11/extensions/windowswmstr.h>
 #include "dixevents.h"
 #include "winmultiwindowclass.h"
-#include "winprefs.h"
 #include <X11/Xatom.h>
 
 
@@ -1005,28 +1004,6 @@ winMWExtWMCopyBytes (unsigned int width, unsigned int height,
   winDebug ("winMWExtWMCopyBytes - Not implemented\n");
 #endif
 }
-
-void
-winMWExtWMFillBytes (unsigned int width, unsigned int height, unsigned int value,
-			   void *dst, unsigned int dstRowBytes)
-{
-#if CYGMULTIWINDOW_DEBUG
-  winDebug ("winMWExtWMFillBytes - Not implemented\n");
-#endif
-}
-
-int
-winMWExtWMCompositePixels (unsigned int width, unsigned int height, unsigned int function,
-				 void *src[2], unsigned int srcRowBytes[2],
-				 void *mask, unsigned int maskRowBytes,
-				 void *dst[2], unsigned int dstRowBytes[2])
-{
-#if CYGMULTIWINDOW_DEBUG
-  winDebug ("winMWExtWMCompositePixels - Not implemented\n");
-#endif
-  return 0;
-}
-
 
 void
 winMWExtWMCopyWindow (RootlessFrameID wid, int nDstRects, const BoxRec *pDstRects,

@@ -314,9 +314,6 @@ typedef Bool (*winFinishCreateWindowsWindowProcPtr)(WindowPtr pWin);
 
 typedef Bool (*winCreateScreenResourcesProc)(ScreenPtr);
 
-/* Typedef for DIX wrapper functions */
-typedef int (*winDispatchProcPtr) (ClientPtr);
-
 
 /*
  * GC (graphics context) privates
@@ -622,6 +619,8 @@ typedef struct {
  * Extern declares for general global variables
  */
 
+#include "winglobals.h"
+
 extern winScreenInfo *		g_ScreenInfo;
 extern miPointerScreenFuncRec	g_winPointerCursorFuncs;
 extern DWORD			g_dwEvents;
@@ -648,16 +647,12 @@ extern const char *		g_pszQueryHost;
 extern DeviceIntPtr             g_pwinPointer;
 extern DeviceIntPtr             g_pwinKeyboard;
 
-
 /*
- * Extern declares for dynamically loaded libraries and function pointers
+ * Extern declares for dynamically loaded library function pointers
  */
 
-extern HMODULE			g_hmodDirectDraw;
 extern FARPROC			g_fpDirectDrawCreate;
 extern FARPROC			g_fpDirectDrawCreateClipper;
-
-extern HMODULE			g_hmodCommonControls;
 extern FARPROC			g_fpTrackMouseEvent;
 
 
@@ -858,6 +853,9 @@ winSetEngine (ScreenPtr pScreen);
 
 Bool
 winGetDDProcAddresses (void);
+
+void
+winReleaseDDProcAddresses(void);
 
 
 /*
@@ -1375,16 +1373,6 @@ void
 winMWExtWMCopyBytes (unsigned int width, unsigned int height,
 			   const void *src, unsigned int srcRowBytes,
 			   void *dst, unsigned int dstRowBytes);
-
-void
-winMWExtWMFillBytes (unsigned int width, unsigned int height, unsigned int value,
-			   void *dst, unsigned int dstRowBytes);
-
-int
-winMWExtWMCompositePixels (unsigned int width, unsigned int height, unsigned int function,
-				 void *src[2], unsigned int srcRowBytes[2],
-				 void *mask, unsigned int maskRowBytes,
-				 void *dst[2], unsigned int dstRowBytes[2]);
 
 void
 winMWExtWMCopyWindow (RootlessFrameID wid, int dstNrects, const BoxRec *dstRects,

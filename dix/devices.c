@@ -2018,8 +2018,9 @@ ProcChangeKeyboardControl (ClientPtr client)
     keyboard = PickKeyboard(client);
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev == keyboard || (!IsMaster(pDev) && pDev->u.master == keyboard)) &&
-            pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
+        if ((pDev == keyboard ||
+	     (!IsMaster(pDev) && GetMaster(pDev, MASTER_KEYBOARD) == keyboard))
+	    && pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
             ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
 	    if (ret != Success)
                 return ret;
@@ -2027,8 +2028,9 @@ ProcChangeKeyboardControl (ClientPtr client)
     }
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev == keyboard || (!IsMaster(pDev) && pDev->u.master == keyboard)) &&
-            pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
+        if ((pDev == keyboard ||
+	     (!IsMaster(pDev) && GetMaster(pDev, MASTER_KEYBOARD) == keyboard))
+	    && pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
             ret = DoChangeKeyboardControl(client, pDev, vlist, vmask);
             if (ret != Success)
                 error = ret;
@@ -2088,7 +2090,8 @@ ProcBell(ClientPtr client)
 	newpercent = base - newpercent + stuff->percent;
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev == keybd || (!IsMaster(dev) && dev->u.master == keybd)) &&
+        if ((dev == keybd ||
+	     (!IsMaster(dev) && GetMaster(dev, MASTER_KEYBOARD) == keybd)) &&
             dev->kbdfeed && dev->kbdfeed->BellProc) {
 
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixBellAccess);
@@ -2110,9 +2113,6 @@ ProcChangePointerControl(ClientPtr client)
     int rc;
     REQUEST(xChangePointerControlReq);
     REQUEST_SIZE_MATCH(xChangePointerControlReq);
-
-    if (!mouse->ptrfeed->CtrlProc)
-        return BadDevice;
 
     ctrl = mouse->ptrfeed->ctrl;
     if ((stuff->doAccel != xTrue) && (stuff->doAccel != xFalse)) {
@@ -2160,8 +2160,9 @@ ProcChangePointerControl(ClientPtr client)
     }
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev == mouse || (!IsMaster(dev) && dev->u.master == mouse)) &&
-            dev->ptrfeed && dev->ptrfeed->CtrlProc) {
+        if ((dev == mouse ||
+	     (!IsMaster(dev) && GetMaster(dev, MASTER_POINTER) == mouse)) &&
+            dev->ptrfeed) {
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
 	    if (rc != Success)
 		return rc;
@@ -2169,10 +2170,10 @@ ProcChangePointerControl(ClientPtr client)
     }
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev == mouse || (!IsMaster(dev) && dev->u.master == mouse)) &&
-            dev->ptrfeed && dev->ptrfeed->CtrlProc) {
+        if ((dev == mouse ||
+	     (!IsMaster(dev) && GetMaster(dev, MASTER_POINTER) == mouse)) &&
+            dev->ptrfeed) {
             dev->ptrfeed->ctrl = ctrl;
-            (*dev->ptrfeed->CtrlProc)(dev, &mouse->ptrfeed->ctrl);
         }
     }
 
@@ -2340,7 +2341,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
         maxbuttons = max(maxbuttons, dev->button->numButtons);
     }
 
-    if (master->button->numButtons != maxbuttons)
+    if (master->button && master->button->numButtons != maxbuttons)
     {
         int i;
         DeviceChangedEvent event;
@@ -2351,7 +2352,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
 
         event.header = ET_Internal;
         event.type = ET_DeviceChanged;
-        event.time = CurrentTime;
+        event.time = GetTimeInMillis();
         event.deviceid = master->id;
         event.flags = DEVCHANGE_POINTER_EVENT | DEVCHANGE_DEVICE_CHANGE;
         event.buttons.num_buttons = maxbuttons;
@@ -2429,7 +2430,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         WindowPtr currentRoot;
 
         if (dev->spriteInfo->sprite)
-            currentRoot = dev->spriteInfo->sprite->spriteTrace[0];
+            currentRoot = GetCurrentRootWindow(dev);
         else /* new device auto-set to floating */
             currentRoot = screenInfo.screens[0]->root;
 

@@ -46,7 +46,6 @@ typedef struct _OFclosure {
     short       num_fpes;
     FontPathElementPtr *fpe_list;
     Mask        flags;
-    Bool        slept;
 
 /* XXX -- get these from request buffer instead? */
     char       *origFontName;
@@ -79,7 +78,6 @@ typedef struct _LFWIclosure {
     LFWIstateRec	saved;
     int			savedNumFonts;
     Bool		haveSaved;
-    Bool		slept;
     char		*savedName;
 } LFWIclosureRec;
 
@@ -93,22 +91,11 @@ typedef struct _LFclosure {
     LFWIstateRec current;
     LFWIstateRec saved;
     Bool        haveSaved;
-    Bool        slept;
     char	*savedName;
     int		savedNameLen;
 }	LFclosureRec;
 
 /* PolyText */
-
-typedef
-    int			(* PolyTextPtr)(
-			DrawablePtr /* pDraw */,
-			GCPtr /* pGC */,
-			int /* x */,
-			int /* y */,
-			int /* count */,
-			void * /* chars or shorts */
-			);
 
 typedef struct _PTclosure {
     ClientPtr		client;
@@ -120,24 +107,11 @@ typedef struct _PTclosure {
     int			xorg;
     int			yorg;
     CARD8		reqType;
-    PolyTextPtr		polyText;
-    int			itemSize;
     XID			did;
     int			err;
-    Bool		slept;
 } PTclosureRec;
 
 /* ImageText */
-
-typedef
-    void		(* ImageTextPtr)(
-			DrawablePtr /* pDraw */,
-			GCPtr /* pGC */,
-			int /* x */,
-			int /* y */,
-			int /* count */,
-			void * /* chars or shorts */
-			);
 
 typedef struct _ITclosure {
     ClientPtr		client;
@@ -148,9 +122,6 @@ typedef struct _ITclosure {
     int			xorg;
     int			yorg;
     CARD8		reqType;
-    ImageTextPtr	imageText;
-    int			itemSize;
     XID			did;
-    Bool		slept;
 } ITclosureRec;
 #endif				/* CLOSESTR_H */
