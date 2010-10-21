@@ -16,9 +16,14 @@
 package net.homeip.ofn.androix;
 
 import android.app.Activity;
-import android.widget.TextView;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 
+import android.widget.TextView;
 
 
 public class AndroiX extends Activity
@@ -29,10 +34,6 @@ public class AndroiX extends Activity
     {
         super.onCreate(savedInstanceState);
 
-        AndroiXDixMain dixmain = new AndroiXDixMain();
-        Thread mainthread = new Thread(dixmain);
-        mainthread.start();
-
         /* Create a TextView and set its content.
          * the text is retrieved by calling a native
          * function.
@@ -41,6 +42,15 @@ public class AndroiX extends Activity
         tv.setText( "no string from jni" );
   //      tv.setText( stringFromJNI() );
         setContentView(tv);
+
+        final Intent intent = new Intent(this, AndroiXService.class);
+        startService(intent);
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        Log.d("AndroiX", "destroyed");
     }
 
     /* A native method that is implemented by the

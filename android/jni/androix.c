@@ -17,6 +17,12 @@
 //include <string.h>
 #include <jni.h>
 
+#include "android/log.h"
+
+#define LOG_TAG "AndroiX"
+//define LOG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+
 /* This is a trivial JNI example where we use a native method
  * to return a new VM String. See the corresponding Java source
  * file located at:
@@ -35,5 +41,8 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 void
 Java_net_homeip_ofn_androix_AndroiXFakeLib_init( JNIEnv* env, jobject thiz )
 {
-	dix_main(1, ":0", "");
+    LOG("starting DIX");
+//	dix_main(1, ":0", "");
+    for(;;) { LOG("running native"); }
+    LOG("returning from DIX (this shouldn't happen)");
 }
