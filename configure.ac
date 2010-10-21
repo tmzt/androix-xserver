@@ -1538,6 +1538,8 @@ dnl Xorg DDX
 AC_MSG_CHECKING([whether to build Xorg DDX])
 if test "x$XORG" = xauto; then
 	XORG="yes"
+	#FIXME check for android somehow
+	XORG="no"
 	case $host_os in
 		cygwin*) XORG="no" ;;
 		darwin*) XORG="no" ;;
