@@ -972,6 +972,7 @@ if test "x$COMPOSITE" = xyes; then
 	COMPOSITE_INC='-I$(top_srcdir)/composite'
 fi
 
+MITSHM=no	# test if this is Android until we can fix shm
 AM_CONDITIONAL(MITSHM, [test "x$MITSHM" = xyes])
 if test "x$MITSHM" = xyes; then
 	AC_DEFINE(MITSHM, 1, [Support MIT-SHM extension])
