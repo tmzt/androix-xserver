@@ -16,50 +16,16 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := fakedix 
-LOCAL_SRC_FILES := fakejni.c
+#LOCAL_MODULE    := fakedix 
+#LOCAL_SRC_FILES := fakejni.c
 
-LOCAL_STATIC_LIBRARIES := libfakedix
+#LOCAL_STATIC_LIBRARIES := libfakedix
 
-libmainlib_la_SOURCES =	\
-	mainlib.c
+LOCAL_MODULE	:= androix
+LOCAL_SRC_FILES := androix.c
+LOCAL_LDFLAGS := -L/opt/androix/usr/lib -lz
 
-libdix_la_SOURCES = 	\
-	atom.c		\
-	colormap.c	\
-	cursor.c	\
-	deprecated.c	\
-	devices.c	\
-	dispatch.c	\
-	dispatch.h	\
-	dixfonts.c	\
-	dixutils.c	\
-	enterleave.c	\
-	enterleave.h	\
-	events.c	\
-	eventconvert.c  \
-	extension.c	\
-	ffs.c		\
-	gc.c		\
-	getevents.c	\
-	globals.c	\
-	glyphcurs.c	\
-	grabs.c		\
-	initatoms.c	\
-	inpututils.c	\
-	pixmap.c	\
-	privates.c	\
-	property.c	\
-	ptrveloc.c	\
-	region.c	\
-	registry.c	\
-	resource.c	\
-	selection.c	\
-	swaprep.c	\
-	swapreq.c	\
-	tables.c	\
-	window.c
-
+LOCAL_STATIC_LIBRARIES := libxfakelib libXdmcp pixman-1 libXfont libXau libfontenc freetype
 
 include $(BUILD_SHARED_LIBRARY)
 #include $(BUILD_STATIC_LIBRARY)

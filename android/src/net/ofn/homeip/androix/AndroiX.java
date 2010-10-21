@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.os.Bundle;
 
 
+
 public class AndroiX extends Activity
 {
     /** Called when the activity is first created. */
@@ -27,6 +28,10 @@ public class AndroiX extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        AndroiXDixMain dixmain = new AndroiXDixMain();
+        Thread mainthread = new Thread(dixmain);
+        mainthread.start();
 
         /* Create a TextView and set its content.
          * the text is retrieved by calling a native
@@ -55,13 +60,16 @@ public class AndroiX extends Activity
      * java.lang.UnsatisfiedLinkError exception !
      */
 //    public native String  unimplementedStringFromJNI();
+//      public native void dix_main(int argc, String argv[], String envp[]);
 
     /* this is used to load the 'hello-jni' library on application
      * startup. The library has already been unpacked into
      * /data/data/com.example.HelloJni/lib/libhello-jni.so at
      * installation time by the package manager.
      */
+/*
     static {
-        System.loadLibrary("fakedix");
+        System.loadLibrary("xfakelib");
     }
+*/
 }
