@@ -41,7 +41,7 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 */
 
 void
-Java_net_homeip_ofn_androix_AndroiXFakeLib_init( JNIEnv* env, jobject thiz )
+Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
 {
     struct stat stats;
     int mode = 0666;
