@@ -25,15 +25,6 @@ int androidInitNative(AndroidPriv *priv)
         return -1;
     }
 
-//    priv->AndroiXService_class = (*(priv->jni_env))->FindClass(priv->jni_env, "net/homeip/ofn/androix/AndroiXService");
-//    LogMessage(X_DEFAULT, "[native] androidInitNative: AndroiXService_class: %.8x", (unsigned int)priv->AndroiXService_class);
-
-//    blitview_id = (*(priv->jni_env))->GetStaticFieldID(priv->jni_env, priv->AndroiXService_class, "blitView", "Lnet/homeip/ofn/androix/AndroiXBlitView");
-//    priv->blitview = (*(priv->jni_env))->GetStaticObjectField(priv->jni_env, priv->AndroiXService_class, blitview_id);
-//    priv->AndroiXBlitView_class = (*(priv->jni_env))->GetObjectClass(priv->jni_env, priv->blitview);
-//    priv->init = (*(priv->jni_env))->GetMethodID(priv->jni_env, priv->AndroiXService_class, "initFramebuffer", "(III)I");
-//  priv->draw = (*(priv->jni_env))->GetMethodID(priv->jni_env, priv->AndroiXService_class, "(III)I");
-
     return 0;
 }
 
@@ -49,8 +40,9 @@ int androidInitFramebuffer(AndroidPriv *priv, int width, int height, int depth)
     jmethodID init;
 
     (*(priv->jvm))->AttachCurrentThread(priv->jvm, (void**)&jni_env, NULL);
-
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: jni_env: %.8x", (unsigned int)jni_env);
+
+
 
     AndroiXService_class = (*jni_env)->FindClass(jni_env, "net/homeip/ofn/androix/AndroiXService");
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: AndroiXService_class: %.8x", (unsigned int)AndroiXService_class);
@@ -63,9 +55,14 @@ int androidInitFramebuffer(AndroidPriv *priv, int width, int height, int depth)
 
     AndroiXBlitView_class = (*jni_env)->GetObjectClass(jni_env, blitview);
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: AndroiXBlitView_class: %.8x", (unsigned int)blitview);
-    init = (*jni_env)->GetMethodID(jni_env, AndroiXBlitView_class, "initFramebuffer", "(III)I");
+    init = (*jni_env)->GetMethodID(jni_env, AndroiXBlitView_class, "initFramebuffer", "(IIILjava.nio.ByteBuffer;)I");
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: init: %.8x", (unsigned int)blitview);
-    jint res = (*jni_env)->CallIntMethod(jni_env, blitview, init, width, height, depth);
+
+    int bpp = depth/8;
+    priv->buf = (*jni_env)->NewDirectByteBuffer(jni_env, priv->base, (width*height*bpp));
+    LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: priv->buf: %.8x", (unsigned int)priv->buf);
+
+    jint res = (*jni_env)->CallIntMethod(jni_env, blitview, init, width, height, depth, priv->buf);
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: res: %.8x", (unsigned int)blitview);
     return res;
 }

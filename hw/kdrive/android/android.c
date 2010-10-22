@@ -32,7 +32,7 @@ androidInitialize (KdCardInfo *card, AndroidPriv *priv)
 {
 
     androidInitNative(priv);
-    androidInitFramebuffer(priv, 800, 480, 16);
+//    androidInitFramebuffer(priv, 800, 480, 16);
 
     priv->base = 0;
     priv->bytes_per_line = 0;
@@ -63,8 +63,8 @@ androidScreenInitialize (KdScreenInfo *screen, AndroidScrPriv *scrpriv)
 {
     if (!screen->width || !screen->height)
     {
-	screen->width = 1024;
-	screen->height = 768;
+	screen->width = 800;    //1024;
+	screen->height = 480;   //768;
 	screen->rate = 72;
     }
 
@@ -187,6 +187,9 @@ androidMapFramebuffer (KdScreenInfo *screen)
 				     screen->fb.bitsPerPixel);
         screen->fb.frameBuffer = (CARD8 *) (priv->base);
     }
+
+    /* initFramebuffer here for now */
+    androidInitFramebuffer(priv, screen->width, screen->height, screen->fb.depth);
     
     return TRUE;
 }

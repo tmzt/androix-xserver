@@ -10,10 +10,13 @@ import android.graphics.Canvas;
 
 import android.util.Log;
 
+import java.nio.*;
+
 /* 2d version */
 
 public class AndroiXBlitView extends View {
     private Bitmap mBitmap = null;
+    private ByteBuffer mBuf = null;
 
     public AndroiXBlitView(Context context) {
         super(context);
@@ -25,13 +28,14 @@ public class AndroiXBlitView extends View {
 
     }
 
-    public int initFramebuffer(int width, int height, int depth) {
+    public int initFramebuffer(int width, int height, int depth, ByteBuffer buf) {
         Log.d("AndroiX", "Initialize Framebuffer: " + width + " x " + height + " depth: " + depth);
         if (depth != 16) {
             Log.d("AndroiX", "Bad depth: " + depth);
             return -1;
         }
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        mBuf = buf;
         return 0;
     }
 

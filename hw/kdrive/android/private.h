@@ -15,17 +15,9 @@ typedef struct _androidPriv {
     CARD8	*base;
     int		bytes_per_line;
 
+    jobject buf;    // the java nio buffer corresponding to base
+
     JavaVM *jvm;
-    JNIEnv *jni_env;
-
-    jobject AndroiXService_instance;
-    jclass AndroiXService_class;
-
-    jobject blitview;
-    jclass AndroiXBlitView_class;
-
-    jmethodID init;
-    jmethodID draw;
 
 } AndroidPriv;
 
