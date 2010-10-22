@@ -2,17 +2,15 @@
 #	@KDRIVE_INCS@				\
 #	@KDRIVE_CFLAGS@
 
-noinst_LTLIBRARIES = libfakelib.la
+noinst_LTLIBRARIES = libkdandroid.la
 
-lib_LTLIBRARIES = libxfakelib.la
+lib_LTLIBRARIES = libxandroid.la
 
-bin_PROGRAMS = Xfakelib Xfakelibthreaded andtest
-
-libfakelib_la_CFLAGS = 	\
+libkdandroid_la_CFLAGS = 	\
 	@KDRIVE_INCS@		\
 	@KDRIVE_CFLAGS@	
 
-libfakelib_la_SOURCES =	\
+libkdandroid_la_SOURCES =	\
 	fakelibinit.c	\
 	fakelib.c	\
 	kbd.c		\
@@ -20,46 +18,22 @@ libfakelib_la_SOURCES =	\
 	mouse.c		\
 	fake.h
 
-libxfakelib_la_CFLAGS =        \
+libxandroid_la_CFLAGS =        \
         @KDRIVE_INCS@           \
-	@XFAKELIB_CFLAGS@
+	@XANDROID_CFLAGS@
 
-libxfakelib_la_SOURCES =
+libxandroid_la_SOURCES =
 
-libxfakelib_la_LIBADD = \
+libxandroid_la_LIBADD = \
 	libfakelib.la	\
-	@XFAKELIB_LIBS@
+	@XANDROID_LIBS@
 
-libxfakelib_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
+libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
     -Wl,-z,nocopyreloc -llog
 
-libxfakelib_la_DEPENDENCIES = \
-	libfakelib.la		\
-	@XFAKELIB_LOCAL_LIBS@
-
-Xfakelib_SOURCES = \
-	andmain.c
-
-Xfakelib_LDFLAGS = -lc -lz -ldl -llog -lxfakelib \
-    /opt/androix/usr/lib/crtbegin_dynamic.o
-
-Xfakelibthreaded_SOURCES = \
-        main6.c
-
-Xfakelibthreaded_LDFLAGS = -lc -lz -ldl -llog -lxfakelib	\
-    -nostdlib -Bdynamic \
-    -Wl,-dynamic-linker,/system/bin/linker \
-    -Wl,-z,nocopyreloc \
-    /opt/androix/usr/lib/crtbegin_dynamic.o
-
-andtest_SOURCES = \
-	andtest.c
-
-andtest_LDFLAGS = -lc -llog \
-    -nostdlib -Bdynamic \
-    -Wl,-dynamic-linker,/system/bin/linker \
-    -Wl,-z,nocopyreloc \
-    /opt/androix/usr/lib/crtbegin_dynamic.o
+libxandroid_la_DEPENDENCIES = \
+	libkdandroid.la		\
+	@XANDROID_LOCAL_LIBS@
 
 relink:
 	$(AM_V_at)rm -f $(bin_PROGRAMS) && $(MAKE) $(bin_PROGRAMS)
