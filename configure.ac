@@ -656,6 +656,7 @@ AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive se
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
 AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
 AC_ARG_ENABLE(xfakelib,		AS_HELP_STRING([--enable-xfakelib], [Build the kdrive-based fakelib (default: auto)]), [XFAKELIB=$enableval], [XFAKELIB=auto])
+AC_ARG_ENABLE(xandroid,		AS_HELP_STRING([--enable-xandroid], [Build the library component of the AndroiX X server for Android(default: auto)]), [XANDROID=$enableval], [XANDROID=auto])
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 dnl kdrive options
 AC_ARG_ENABLE(kdrive-kbd,     AS_HELP_STRING([--enable-kdrive-kbd], [Build kbd driver for kdrive (default: auto)]), [KDRIVE_KBD=$enableval], [KDRIVE_KBD=auto])
@@ -2041,6 +2042,10 @@ if test "$KDRIVE" = yes; then
 	AC_DEFINE(DDXOSVERRORF, 1, [Use Android logging facility])
     fi
 
+    if test "x$XANDROID" = xyes; then
+	XANDROID=yes
+	AC_DEFINE(XANDROID, 1, [Build the library component of the AndroiX X server for Android])
+    fi
 
     PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
     if test "x$HAVE_TSLIB" = xno; then
@@ -2162,6 +2167,7 @@ AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 AM_CONDITIONAL(XFAKELIB, [test "x$KDRIVE" = xyes && test "x$XFAKELIB" = xyes])
+AM_CONDITIONAL(XANDROID, [test "x$KDRIVE" = xyes && test "x$XANDROID" = xyes])
 
 dnl and the rest of these are generic, so they're in config.h
 dnl 
@@ -2282,6 +2288,7 @@ hw/kdrive/Makefile
 hw/kdrive/ephyr/Makefile
 hw/kdrive/fake/Makefile
 hw/kdrive/fakelib/Makefile
+hw/kdrive/android/Makefile
 hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
