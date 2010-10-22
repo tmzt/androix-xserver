@@ -11,12 +11,12 @@ libkdandroid_la_CFLAGS = 	\
 	@KDRIVE_CFLAGS@	
 
 libkdandroid_la_SOURCES =	\
-	fakelibinit.c	\
-	fakelib.c	\
+	android.c		\
+	init.c			\
 	kbd.c		\
 	os.c		\
 	mouse.c		\
-	fake.h
+	kdandroid.h
 
 libxandroid_la_CFLAGS =        \
         @KDRIVE_INCS@           \
