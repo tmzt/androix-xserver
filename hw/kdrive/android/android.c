@@ -28,23 +28,26 @@
 extern int KdTsPhyScreen;
 
 Bool
-fakeInitialize (KdCardInfo *card, FakePriv *priv)
+androidInitialize (KdCardInfo *card, AndroidPriv *priv)
 {
+
+    androidInitFramebuffer(priv, 800, 480, 16);
+
     priv->base = 0;
     priv->bytes_per_line = 0;
     return TRUE;
 }
 
 Bool
-fakeCardInit (KdCardInfo *card)
+androidCardInit (KdCardInfo *card)
 {
-    FakePriv	*priv;
+    AndroidPriv	*priv;
 
-    priv = (FakePriv *) malloc(sizeof (FakePriv));
+    priv = (AndroidPriv *) malloc(sizeof (AndroidPriv));
     if (!priv)
 	return FALSE;
     
-    if (!fakeInitialize (card, priv))
+    if (!androidInitialize (card, priv))
     {
 	free(priv);
 	return FALSE;
@@ -55,7 +58,7 @@ fakeCardInit (KdCardInfo *card)
 }
 
 Bool
-fakeScreenInitialize (KdScreenInfo *screen, FakeScrPriv *scrpriv)
+androidScreenInitialize (KdScreenInfo *screen, AndroidScrPriv *scrpriv)
 {
     if (!screen->width || !screen->height)
     {
@@ -113,19 +116,19 @@ fakeScreenInitialize (KdScreenInfo *screen, FakeScrPriv *scrpriv)
 
     scrpriv->randr = screen->randr;
 
-    return fakeMapFramebuffer (screen);
+    return androidMapFramebuffer (screen);
 }
 
 Bool
-fakeScreenInit (KdScreenInfo *screen)
+androidScreenInit (KdScreenInfo *screen)
 {
-    FakeScrPriv *scrpriv;
+    AndroidScrPriv *scrpriv;
 
-    scrpriv = calloc(1, sizeof (FakeScrPriv));
+    scrpriv = calloc(1, sizeof (AndroidScrPriv));
     if (!scrpriv)
 	return FALSE;
     screen->driver = scrpriv;
-    if (!fakeScreenInitialize (screen, scrpriv))
+    if (!androidScreenInitialize (screen, scrpriv))
     {
 	screen->driver = 0;
 	free(scrpriv);
@@ -135,7 +138,7 @@ fakeScreenInit (KdScreenInfo *screen)
 }
     
 void *
-fakeWindowLinear (ScreenPtr	pScreen,
+androidWindowLinear (ScreenPtr	pScreen,
 		   CARD32	row,
 		   CARD32	offset,
 		   int		mode,
@@ -143,7 +146,7 @@ fakeWindowLinear (ScreenPtr	pScreen,
 		   void		*closure)
 {
     KdScreenPriv(pScreen);
-    FakePriv	    *priv = pScreenPriv->card->driver;
+    AndroidPriv	    *priv = pScreenPriv->card->driver;
 
     if (!pScreenPriv->enabled)
 	return 0;
@@ -152,11 +155,11 @@ fakeWindowLinear (ScreenPtr	pScreen,
 }
 
 Bool
-fakeMapFramebuffer (KdScreenInfo *screen)
+androidMapFramebuffer (KdScreenInfo *screen)
 {
-    FakeScrPriv	*scrpriv = screen->driver;
+    AndroidScrPriv	*scrpriv = screen->driver;
     KdPointerMatrix	m;
-    FakePriv		*priv = screen->card->driver;
+    AndroidPriv		*priv = screen->card->driver;
 
     if (scrpriv->randr != RR_Rotate_0)
 	scrpriv->shadow = TRUE;
@@ -188,11 +191,11 @@ fakeMapFramebuffer (KdScreenInfo *screen)
 }
 
 void
-fakeSetScreenSizes (ScreenPtr pScreen)
+androidSetScreenSizes (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    FakeScrPriv	*scrpriv = screen->driver;
+    AndroidScrPriv	*scrpriv = screen->driver;
 
     if (scrpriv->randr & (RR_Rotate_0|RR_Rotate_180))
     {
@@ -211,9 +214,9 @@ fakeSetScreenSizes (ScreenPtr pScreen)
 }
 
 Bool
-fakeUnmapFramebuffer (KdScreenInfo *screen)
+androidUnmapFramebuffer (KdScreenInfo *screen)
 {
-    FakePriv		*priv = screen->card->driver;
+    AndroidPriv		*priv = screen->card->driver;
     KdShadowFbFree (screen);
     if (priv->base)
     {
@@ -224,15 +227,15 @@ fakeUnmapFramebuffer (KdScreenInfo *screen)
 }
 
 Bool
-fakeSetShadow (ScreenPtr pScreen)
+androidSetShadow (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    FakeScrPriv	*scrpriv = screen->driver;
+    AndroidScrPriv	*scrpriv = screen->driver;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
 
-    window = fakeWindowLinear;
+    window = androidWindowLinear;
     update = 0;
     if (scrpriv->randr)
 	update = shadowUpdateRotatePacked;
@@ -244,11 +247,11 @@ fakeSetShadow (ScreenPtr pScreen)
 
 #ifdef RANDR
 Bool
-fakeRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+androidRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	    *screen = pScreenPriv->screen;
-    FakeScrPriv	    *scrpriv = screen->driver;
+    AndroidScrPriv	    *scrpriv = screen->driver;
     RRScreenSizePtr	    pSize;
     Rotation		    randr;
     int			    n;
@@ -275,16 +278,16 @@ fakeRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 }
 
 Bool
-fakeRandRSetConfig (ScreenPtr		pScreen,
+androidRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
 		     int		rate,
 		     RRScreenSizePtr	pSize)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    FakeScrPriv	*scrpriv = screen->driver;
+    AndroidScrPriv	*scrpriv = screen->driver;
     Bool		wasEnabled = pScreenPriv->enabled;
-    FakeScrPriv	oldscr;
+    AndroidScrPriv	oldscr;
     int			oldwidth;
     int			oldheight;
     int			oldmmwidth;
@@ -318,17 +321,17 @@ fakeRandRSetConfig (ScreenPtr		pScreen,
     
     scrpriv->randr = KdAddRotation (screen->randr, randr);
 
-    fakeUnmapFramebuffer (screen);
+    androidUnmapFramebuffer (screen);
     
-    if (!fakeMapFramebuffer (screen))
+    if (!androidMapFramebuffer (screen))
 	goto bail4;
 
     KdShadowUnset (screen->pScreen);
 
-    if (!fakeSetShadow (screen->pScreen))
+    if (!androidSetShadow (screen->pScreen))
 	goto bail4;
 
-    fakeSetScreenSizes (screen->pScreen);
+    androidSetScreenSizes (screen->pScreen);
 
     /*
      * Set frame buffer mapping
@@ -350,9 +353,9 @@ fakeRandRSetConfig (ScreenPtr		pScreen,
     return TRUE;
 
 bail4:
-    fakeUnmapFramebuffer (screen);
+    androidUnmapFramebuffer (screen);
     *scrpriv = oldscr;
-    (void) fakeMapFramebuffer (screen);
+    (void) androidMapFramebuffer (screen);
     pScreen->width = oldwidth;
     pScreen->height = oldheight;
     pScreen->mmWidth = oldmmwidth;
@@ -364,7 +367,7 @@ bail4:
 }
 
 Bool
-fakeRandRInit (ScreenPtr pScreen)
+androidRandRInit (ScreenPtr pScreen)
 {
     rrScrPrivPtr    pScrPriv;
     
@@ -372,37 +375,37 @@ fakeRandRInit (ScreenPtr pScreen)
 	return FALSE;
 
     pScrPriv = rrGetScrPriv(pScreen);
-    pScrPriv->rrGetInfo = fakeRandRGetInfo;
-    pScrPriv->rrSetConfig = fakeRandRSetConfig;
+    pScrPriv->rrGetInfo = androidRandRGetInfo;
+    pScrPriv->rrSetConfig = androidRandRSetConfig;
     return TRUE;
 }
 #endif
 
 Bool
-fakeCreateColormap (ColormapPtr pmap)
+androidCreateColormap (ColormapPtr pmap)
 {
     return fbInitializeColormap (pmap);
 }
 
 Bool
-fakeInitScreen (ScreenPtr pScreen)
+androidInitScreen (ScreenPtr pScreen)
 {
 #ifdef TOUCHSCREEN
     KdTsPhyScreen = pScreen->myNum;
 #endif
 
-    pScreen->CreateColormap = fakeCreateColormap;
+    pScreen->CreateColormap = androidCreateColormap;
     return TRUE;
 }
 
 Bool
-fakeFinishInitScreen (ScreenPtr pScreen)
+androidFinishInitScreen (ScreenPtr pScreen)
 {
     if (!shadowSetup (pScreen))
 	return FALSE;
 
 #ifdef RANDR
-    if (!fakeRandRInit (pScreen))
+    if (!androidRandRInit (pScreen))
 	return FALSE;
 #endif
     
@@ -411,54 +414,54 @@ fakeFinishInitScreen (ScreenPtr pScreen)
 
 
 Bool
-fakeCreateResources (ScreenPtr pScreen)
+androidCreateResources (ScreenPtr pScreen)
 {
-    return fakeSetShadow (pScreen);
+    return androidSetShadow (pScreen);
 }
 
 void
-fakePreserve (KdCardInfo *card)
+androidPreserve (KdCardInfo *card)
 {
 }
 
 Bool
-fakeEnable (ScreenPtr pScreen)
+androidEnable (ScreenPtr pScreen)
 {
     return TRUE;
 }
 
 Bool
-fakeDPMS (ScreenPtr pScreen, int mode)
+androidDPMS (ScreenPtr pScreen, int mode)
 {
     return TRUE;
 }
 
 void
-fakeDisable (ScreenPtr pScreen)
+androidDisable (ScreenPtr pScreen)
 {
 }
 
 void
-fakeRestore (KdCardInfo *card)
+androidRestore (KdCardInfo *card)
 {
 }
 
 void
-fakeScreenFini (KdScreenInfo *screen)
+androidScreenFini (KdScreenInfo *screen)
 {
 }
 
 void
-fakeCardFini (KdCardInfo *card)
+androidCardFini (KdCardInfo *card)
 {
-    FakePriv	*priv = card->driver;
+    AndroidPriv	*priv = card->driver;
 
     free (priv->base);
     free(priv);
 }
 
 void
-fakeGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
+androidGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
     while (n--)
     {
@@ -470,6 +473,6 @@ fakeGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 }
 
 void
-fakePutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
+androidPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
 }

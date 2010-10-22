@@ -12,6 +12,7 @@ libkdandroid_la_CFLAGS = 	\
 
 libkdandroid_la_SOURCES =	\
 	android.c		\
+	native.c		\
 	init.c			\
 	kbd.c		\
 	os.c		\

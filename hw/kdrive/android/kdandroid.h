@@ -20,8 +20,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _FBDEV_H_
-#define _FBDEV_H_
+#ifndef _KDANDROID_H_
+#define _KDANDROID_H_
 #include <stdio.h>
 #include <unistd.h>
 #include "kdrive.h"
@@ -30,71 +30,64 @@
 #include "randrstr.h"
 #endif
 
-typedef struct _fakePriv {
-    CARD8	*base;
-    int		bytes_per_line;
-} FakePriv;
-    
-typedef struct _fakeScrPriv {
-    Rotation	randr;
-    Bool	shadow;
-} FakeScrPriv;
+#include "private.h"
+#include "native.h"
 
-extern KdCardFuncs  fakeFuncs;
+extern KdCardFuncs  androidFuncs;
 
 Bool
-fakeInitialize (KdCardInfo *card, FakePriv *priv);
+androidInitialize (KdCardInfo *card, AndroidPriv *priv);
 
 Bool
-fakeCardInit (KdCardInfo *card);
+androidCardInit (KdCardInfo *card);
 
 Bool
-fakeScreenInit (KdScreenInfo *screen);
+androidScreenInit (KdScreenInfo *screen);
 
 Bool
-fakeScreenInitialize (KdScreenInfo *screen, FakeScrPriv *scrpriv);
+androidScreenInitialize (KdScreenInfo *screen, AndroidScrPriv *scrpriv);
     
 Bool
-fakeInitScreen (ScreenPtr pScreen);
+androidInitScreen (ScreenPtr pScreen);
 
 Bool
-fakeFinishInitScreen (ScreenPtr pScreen);
+androidFinishInitScreen (ScreenPtr pScreen);
 
 Bool
-fakeCreateResources (ScreenPtr pScreen);
+androidCreateResources (ScreenPtr pScreen);
 
 void
-fakePreserve (KdCardInfo *card);
+androidPreserve (KdCardInfo *card);
 
 Bool
-fakeEnable (ScreenPtr pScreen);
+androidEnable (ScreenPtr pScreen);
 
 Bool
-fakeDPMS (ScreenPtr pScreen, int mode);
+androidDPMS (ScreenPtr pScreen, int mode);
 
 void
-fakeDisable (ScreenPtr pScreen);
+androidDisable (ScreenPtr pScreen);
 
 void
-fakeRestore (KdCardInfo *card);
+androidRestore (KdCardInfo *card);
 
 void
-fakeScreenFini (KdScreenInfo *screen);
+androidScreenFini (KdScreenInfo *screen);
 
 void
-fakeCardFini (KdCardInfo *card);
+androidCardFini (KdCardInfo *card);
 
 void
-fakeGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs);
+androidGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs);
 
 void
-fakePutColors (ScreenPtr pScreen, int n, xColorItem *pdefs);
+androidPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs);
 
 Bool
-fakeMapFramebuffer (KdScreenInfo *screen);
+androidMapFramebuffer (KdScreenInfo *screen);
 
 void *
-fakeWindowLinear (ScreenPtr	pScreen,
+androidWindowLinear (ScreenPtr	pScreen,
 		   CARD32	row,
 		   CARD32	offset,
 		   int		mode,
@@ -102,35 +95,35 @@ fakeWindowLinear (ScreenPtr	pScreen,
 		   void		*closure);
 
 void
-fakeSetScreenSizes (ScreenPtr pScreen);
+androidSetScreenSizes (ScreenPtr pScreen);
 
 Bool
-fakeUnmapFramebuffer (KdScreenInfo *screen);
+androidUnmapFramebuffer (KdScreenInfo *screen);
 
 Bool
-fakeSetShadow (ScreenPtr pScreen);
+androidSetShadow (ScreenPtr pScreen);
 
 Bool
-fakeCreateColormap (ColormapPtr pmap);
+androidCreateColormap (ColormapPtr pmap);
     
 #ifdef RANDR
 Bool
-fakeRandRGetInfo (ScreenPtr pScreen, Rotation *rotations);
+androidRandRGetInfo (ScreenPtr pScreen, Rotation *rotations);
 
 Bool
-fakeRandRSetConfig (ScreenPtr		pScreen,
+androidRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
 		     int		rate,
 		     RRScreenSizePtr	pSize);
 Bool
-fakeRandRInit (ScreenPtr pScreen);
+androidRandRInit (ScreenPtr pScreen);
 
 #endif
 
-extern KdPointerDriver FakePointerDriver;
+extern KdPointerDriver androidPointerDriver;
 
-extern KdKeyboardDriver	FakeKeyboardDriver;
+extern KdKeyboardDriver	androidKeyboardDriver;
 
-extern KdOsFuncs   FakeOsFuncs;
+extern KdOsFuncs   androidOsFuncs;
 
-#endif /* _FBDEV_H_ */
+#endif /* _KDANDROID_H_ */

@@ -18,9 +18,17 @@ import java.util.zip.*;
 
 public class AndroiXService extends Service {
 
+    public static AndroiXBlitView blitView;
+    private static AndroiXService instance;
+
     @Override
     public void onCreate()
     {
+
+        /* create the 2d view */
+        blitView = new AndroiXBlitView(this);
+
+        /* extract resources */
         try {
             BufferedOutputStream os;
             BufferedInputStream is;
@@ -61,6 +69,8 @@ public class AndroiXService extends Service {
         Thread mainthread = new Thread(dixmain, "AndroiX DIX Thread");
         mainthread.setDaemon(true);
         mainthread.start();
+
+        instance = this;
     }
 
 /* service should not restart when it dies */

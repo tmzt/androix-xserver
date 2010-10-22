@@ -28,7 +28,7 @@
 void
 InitCard (char *name)
 {
-    KdCardInfoAdd (&fakeFuncs, 0);
+    KdCardInfoAdd (&androidFuncs, 0);
 }
 
 void
@@ -46,13 +46,13 @@ InitInput (int argc, char **argv)
     pi = KdNewPointer ();
     if (!pi)
         return;
-    pi->driver = &FakePointerDriver;
+    pi->driver = &androidPointerDriver;
     KdAddPointer(pi);
 
     ki = KdNewKeyboard ();
     if (!ki)
         return;
-    ki->driver = &FakeKeyboardDriver;
+    ki->driver = &androidKeyboardDriver;
     KdAddKeyboard(ki);
 
     KdInitInput ();
@@ -85,22 +85,22 @@ ddxProcessArgument (int argc, char **argv, int i)
 void
 OsVendorInit (void)
 {
-    KdOsInit (&FakeOsFuncs);
+    KdOsInit (&androidOsFuncs);
 }
 
-KdCardFuncs	fakeFuncs = {
-    fakeCardInit,	    /* cardinit */
-    fakeScreenInit,	    /* scrinit */
-    fakeInitScreen,	    /* initScreen */
-    fakeFinishInitScreen,  /* finishInitScreen */
-    fakeCreateResources,   /* createRes */
-    fakePreserve,	    /* preserve */
-    fakeEnable,	    /* enable */
-    fakeDPMS,		    /* dpms */
-    fakeDisable,	    /* disable */
-    fakeRestore,	    /* restore */
-    fakeScreenFini,	    /* scrfini */
-    fakeCardFini,	    /* cardfini */
+KdCardFuncs	androidFuncs = {
+    androidCardInit,	    /* cardinit */
+    androidScreenInit,	    /* scrinit */
+    androidInitScreen,	    /* initScreen */
+    androidFinishInitScreen,  /* finishInitScreen */
+    androidCreateResources,   /* createRes */
+    androidPreserve,	    /* preserve */
+    androidEnable,	    /* enable */
+    androidDPMS,		    /* dpms */
+    androidDisable,	    /* disable */
+    androidRestore,	    /* restore */
+    androidScreenFini,	    /* scrfini */
+    androidCardFini,	    /* cardfini */
     
     0,			    /* initCursor */
     0,			    /* enableCursor */
@@ -113,6 +113,6 @@ KdCardFuncs	fakeFuncs = {
     0,			    /* disableAccel */
     0,			    /* finiAccel */
     
-    fakeGetColors,    	    /* getColors */
-    fakePutColors,	    /* putColors */
+    androidGetColors,    	    /* getColors */
+    androidPutColors,	    /* putColors */
 };
