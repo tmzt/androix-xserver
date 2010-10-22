@@ -63,6 +63,7 @@ public class AndroiXService extends Service {
         mainthread.start();
     }
 
+/* service should not restart when it dies */
 /*
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)

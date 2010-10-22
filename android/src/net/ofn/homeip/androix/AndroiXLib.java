@@ -1,7 +1,7 @@
 
 package net.homeip.ofn.androix;
 
-public class AndroiXFakeLib {
+public class AndroiXLib {
     public native void init();
 
     static
