@@ -41,8 +41,10 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 void
 Java_net_homeip_ofn_androix_AndroiXFakeLib_init( JNIEnv* env, jobject thiz )
 {
+    char *argv[] = {":1"};
+    char *envp[] = {};
+
     LOG("starting DIX");
-//	dix_main(1, ":0", "");
-    for(;;) { LOG("running native"); }
+	dix_main(1, argv, envp);
     LOG("returning from DIX (this shouldn't happen)");
 }

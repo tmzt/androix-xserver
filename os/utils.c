@@ -226,7 +226,12 @@ OsSignal(int sig, OsSigHandlerPtr handler)
  * server at a time.  This keeps the servers from stomping on each other
  * if the user forgets to give them different display numbers.
  */
+#ifndef ANDROID
 #define LOCK_DIR "/tmp"
+#else
+//define LOCK_DIR "/data/local/tmp"
+#define LOCK_DIR "/data/data/net.homeip.ofn.androix/"
+#endif
 #define LOCK_TMP_PREFIX "/.tX"
 #define LOCK_PREFIX "/.X"
 #define LOCK_SUFFIX "-lock"

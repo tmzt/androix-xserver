@@ -130,6 +130,14 @@ asm (".desc ___crashreporter_info__, 0x10");
 #endif
 #endif
 
+#ifdef ANDROID
+#include <android/log.h>
+
+#define LOG_TAG "AndroiX"
+//define LOG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#endif
+
 /* Prefix strings for log messages. */
 #ifndef X_UNKNOWN_STRING
 #define X_UNKNOWN_STRING		"(\?\?)"
@@ -277,6 +285,9 @@ LogVWrite(int verb, const char *f, va_list args)
 	len = strlen(tmpBuffer);
 	if (logFile)
 	    fwrite(tmpBuffer, len, 1, logFile);
+	#ifdef ANDROID
+	    LOG(tmpBuffer);
+	#endif
     }
 
     /*
@@ -320,6 +331,9 @@ LogVWrite(int verb, const char *f, va_list args)
 	    memcpy(saveBuffer + bufferPos, tmpBuffer, len);
 	    bufferPos += len;
 	}
+	#ifdef ANDROID
+	    LOG(tmpBuffer);
+	#endif
     }
 }
 
