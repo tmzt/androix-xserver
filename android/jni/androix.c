@@ -17,6 +17,8 @@
 //include <string.h>
 #include <jni.h>
 
+#include <sys/stat.h>
+
 #include "android/log.h"
 
 #define LOG_TAG "AndroiX"
@@ -41,8 +43,21 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 void
 Java_net_homeip_ofn_androix_AndroiXFakeLib_init( JNIEnv* env, jobject thiz )
 {
+    struct stat stats;
+    int mode = 0666;
+    
     char *argv[] = {":1"};
     char *envp[] = {};
+
+    LOG("fixing up /data/data/net.homeip.ofn.androix/usr/bin/xkbcomp");
+
+    chmod("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp", 0775);
+
+    LOG("done.");
+
+    stat("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp", &stats);
+
+    LOG("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp mode: " + stats.st_mode);
 
     LOG("starting DIX");
 	dix_main(1, argv, envp);
