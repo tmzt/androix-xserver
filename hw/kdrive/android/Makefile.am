@@ -18,22 +18,18 @@ libkdandroid_la_SOURCES =	\
 	mouse.c		\
 	kdandroid.h
 
-libxandroid_la_CFLAGS =        \
-        @KDRIVE_INCS@           \
-	@XANDROID_CFLAGS@
-
 libxandroid_la_SOURCES =
 
 libxandroid_la_LIBADD = \
 	libkdandroid.la	\
-	@XANDROID_LIBS@
+	@KDRIVE_LIBS@
 
 libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
     -Wl,-z,nocopyreloc -llog
 
 libxandroid_la_DEPENDENCIES = \
 	libkdandroid.la		\
-	@KDRIVE_LOCAL_LIBS@
+	$(KDRIVE_PURE_LIBS)
 
 relink:
 	$(AM_V_at)rm -f $(bin_PROGRAMS) && $(MAKE) $(bin_PROGRAMS)

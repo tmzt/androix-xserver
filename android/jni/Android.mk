@@ -25,8 +25,8 @@ LOCAL_MODULE	:= androix
 LOCAL_SRC_FILES := androix.c
 LOCAL_LDFLAGS := -L/opt/androix/usr/lib -lz -llog -lXdmcp -lpixman-1 -lXfont -lXau -lfontenc -lfreetype
 
-#LOCAL_STATIC_LIBRARIES := libxfakelib libXdmcp pixman-1 libXfont libXau libfontenc freetype
-LOCAL_STATIC_LIBRARIES := libxfakelib
+#LOCAL_STATIC_LIBRARIES := libxfakelib
+LOCAL_STATIC_LIBRARIES := libxandroid
 
 include $(BUILD_SHARED_LIBRARY)
 #include $(BUILD_STATIC_LIBRARY)

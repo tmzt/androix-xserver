@@ -36,6 +36,9 @@
 /* Build kdrive-based fakelib server library */
 #undef XFAKELIB
 
+/* Build library component of the AndroiX X server for Android */
+#undef XANDROID
+
 /* Use OsVendorVErrorF */
 #undef DDXOSVERRORF
 

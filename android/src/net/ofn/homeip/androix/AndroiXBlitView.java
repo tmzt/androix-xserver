@@ -10,12 +10,14 @@ import android.graphics.Canvas;
 
 /* 2d version */
 
-public AndroiXBlitView extends View {
+public class AndroiXBlitView extends View {
     private Bitmap mBitmap;
 
     public AndroiXBlitView(Context context) {
-        final int w = 800;
-        final int h = 480;
+        super(context);
+
+        int W = 800;
+        int H = 480;
 
         mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGB_565);
 
