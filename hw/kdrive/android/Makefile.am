@@ -25,7 +25,7 @@ libxandroid_la_CFLAGS =        \
 libxandroid_la_SOURCES =
 
 libxandroid_la_LIBADD = \
-	libfakelib.la	\
+	libkdandroid.la	\
 	@XANDROID_LIBS@
 
 libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
@@ -33,7 +33,7 @@ libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
 
 libxandroid_la_DEPENDENCIES = \
 	libkdandroid.la		\
-	@XANDROID_LOCAL_LIBS@
+	@KDRIVE_LOCAL_LIBS@
 
 relink:
 	$(AM_V_at)rm -f $(bin_PROGRAMS) && $(MAKE) $(bin_PROGRAMS)

@@ -23,7 +23,7 @@
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
-#include "fakelib.h"
+#include "kdandroid.h"
 
 extern int KdTsPhyScreen;
 

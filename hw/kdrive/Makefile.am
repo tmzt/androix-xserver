@@ -10,7 +10,7 @@ if XFAKELIB
 XFAKELIB_SUBDIRS = fakelib
 endif
 
-if XANDROIDSERVER
+if XANDROID
 XANDROID_SUBDIRS = android 
 endif
 

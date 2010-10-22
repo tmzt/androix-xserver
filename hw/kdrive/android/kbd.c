@@ -23,7 +23,7 @@
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
-#include "fakelib.h"
+#include "kdandroid.h"
 #include <X11/keysym.h>
 
 #define FAKE_WIDTH  2
