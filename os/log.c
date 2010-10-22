@@ -286,7 +286,7 @@ LogVWrite(int verb, const char *f, va_list args)
 	if (logFile)
 	    fwrite(tmpBuffer, len, 1, logFile);
 	#ifdef ANDROID
-	    LOG(tmpBuffer);
+	//    LOG(tmpBuffer);
 	#endif
     }
 
@@ -302,6 +302,9 @@ LogVWrite(int verb, const char *f, va_list args)
     newline = (tmpBuffer[len-1] == '\n');
     if ((verb < 0 || logVerbosity >= verb) && len > 0)
 	fwrite(tmpBuffer, len, 1, stderr);
+#ifdef ANDROID
+	LOG(tmpBuffer);
+#endif	
     if ((verb < 0 || logFileVerbosity >= verb) && len > 0) {
 	if (logFile) {
 	    fwrite(tmpBuffer, len, 1, logFile);
@@ -332,7 +335,7 @@ LogVWrite(int verb, const char *f, va_list args)
 	    bufferPos += len;
 	}
 	#ifdef ANDROID
-	    LOG(tmpBuffer);
+	    //LOG(tmpBuffer);
 	#endif
     }
 }

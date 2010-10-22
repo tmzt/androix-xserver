@@ -26,38 +26,38 @@
 #include "kdandroid.h"
 
 static int
-FakeInit (void)
+AndroidInit (void)
 {
     return 1;
 }
 
 static void
-FakeEnable (void)
+AndroidEnable (void)
 {
 }
 
 static Bool
-FakeSpecialKey (KeySym sym)
+AndroidSpecialKey (KeySym sym)
 {
     return FALSE;
 }
 
 static void
-FakeDisable (void)
+AndroidDisable (void)
 {
 }
 
 static void
-FakeFini (void)
+AndroidFini (void)
 {
 }
 
-KdOsFuncs   FakeOsFuncs = {
-    FakeInit,
-    FakeEnable,
-    FakeSpecialKey,
-    FakeDisable,
-    FakeFini,
+KdOsFuncs   AndroidOsFuncs = {
+    AndroidInit,
+    AndroidEnable,
+    AndroidSpecialKey,
+    AndroidDisable,
+    AndroidFini,
     0
 };
 

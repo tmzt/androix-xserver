@@ -31,6 +31,7 @@ Bool
 androidInitialize (KdCardInfo *card, AndroidPriv *priv)
 {
 
+    androidInitNative(priv);
     androidInitFramebuffer(priv, 800, 480, 16);
 
     priv->base = 0;

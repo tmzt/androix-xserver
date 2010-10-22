@@ -32,6 +32,7 @@ public class AndroiXBlitView extends View {
             return -1;
         }
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        return 0;
     }
 
     @Override protected void onDraw(Canvas canvas) {

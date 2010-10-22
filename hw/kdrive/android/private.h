@@ -15,13 +15,14 @@ typedef struct _androidPriv {
     CARD8	*base;
     int		bytes_per_line;
 
+    JavaVM *jvm;
     JNIEnv *jni_env;
 
     jobject AndroiXService_instance;
     jclass AndroiXService_class;
 
     jobject blitview;
-    jclass AndroixBlitView_class;
+    jclass AndroiXBlitView_class;
 
     jmethodID init;
     jmethodID draw;

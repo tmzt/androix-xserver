@@ -120,10 +120,10 @@ androidRandRInit (ScreenPtr pScreen);
 
 #endif
 
-extern KdPointerDriver androidPointerDriver;
+extern KdPointerDriver FakePointerDriver;
 
-extern KdKeyboardDriver	androidKeyboardDriver;
+extern KdKeyboardDriver	FakeKeyboardDriver;
 
-extern KdOsFuncs   androidOsFuncs;
+extern KdOsFuncs   AndroidOsFuncs;
 
 #endif /* _KDANDROID_H_ */

@@ -40,6 +40,17 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 }
 */
 
+JavaVM *xandroid_jvm;
+JNIEnv *xandroid_jni_env;
+
+jint
+JNI_OnLoad(JavaVM *jvm, void *reserved) {
+    xandroid_jvm = jvm; // pass to kdandroid driver
+    LOG("xandroid_jvm: %.8x", xandroid_jvm);
+
+    return JNI_VERSION_1_4;
+}
+
 void
 Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
 {
@@ -48,6 +59,9 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     
     char *argv[] = {":1"};
     char *envp[] = {};
+
+    xandroid_jni_env = env; // pass to kdandroid driver
+    LOG("xandroid_jni_env: %.8x", xandroid_jni_env);
 
     LOG("fixing up /data/data/net.homeip.ofn.androix/usr/bin/xkbcomp");
 

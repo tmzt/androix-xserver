@@ -46,13 +46,13 @@ InitInput (int argc, char **argv)
     pi = KdNewPointer ();
     if (!pi)
         return;
-    pi->driver = &androidPointerDriver;
+    pi->driver = &FakePointerDriver;
     KdAddPointer(pi);
 
     ki = KdNewKeyboard ();
     if (!ki)
         return;
-    ki->driver = &androidKeyboardDriver;
+    ki->driver = &FakeKeyboardDriver;
     KdAddKeyboard(ki);
 
     KdInitInput ();
@@ -85,7 +85,7 @@ ddxProcessArgument (int argc, char **argv, int i)
 void
 OsVendorInit (void)
 {
-    KdOsInit (&androidOsFuncs);
+    KdOsInit (&AndroidOsFuncs);
 }
 
 KdCardFuncs	androidFuncs = {
