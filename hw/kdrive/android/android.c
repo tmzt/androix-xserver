@@ -659,8 +659,11 @@ There are now more than MAX_KEYCODE keycodes. Use getMaxKeyCode() instead.
 MAX_KEYCODE current value: 84
 */
 
-  ki->minScanCode = 0; /* ? */
-  ki->maxScanCode = 84; /* FIXME */
+//  ki->minScanCode = 0; /* ? */
+//  ki->maxScanCode = 84; /* FIXME */
+
+  ki->minScanCode = 0;
+  ki->maxScanCode = 255;
 
   free(ki->name);
   ki->name = strdup("AndroiX virtual keyboard");
