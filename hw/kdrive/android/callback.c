@@ -22,6 +22,7 @@ void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode) {
     GetEventList(&androidEvents);
     lastEventTime = GetTimeInMillis();
     n = GetKeyboardEvents(androidEvents, kbd->dixdev, KeyPress, keyCode);
+    LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: n: %d", n);
     for (i = 0; i < n; i++)
         mieqEnqueue(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event);
 
@@ -39,6 +40,7 @@ void androidCallbackKeyUp(KdKeyboardInfo *kbd, int keyCode) {
     GetEventList(&androidEvents);
     lastEventTime = GetTimeInMillis();
     n = GetKeyboardEvents(androidEvents, kbd->dixdev, KeyRelease, keyCode);
+    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: n: %d", n);
     for (i = 0; i < n; i++)
         mieqEnqueue(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event);
 
