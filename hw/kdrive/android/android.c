@@ -400,9 +400,14 @@ androidCreateColormap (ColormapPtr pmap)
 Bool
 androidInitScreen (ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen = pScreenPriv->screen;
+
 #ifdef TOUCHSCREEN
     KdTsPhyScreen = pScreen->myNum;
 #endif
+
+    androidInitNativeScreen(screen);
 
     pScreen->CreateColormap = androidCreateColormap;
     return TRUE;

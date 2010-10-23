@@ -15,6 +15,7 @@ import java.nio.*;
 /* 2d version */
 
 public class AndroiXBlitView extends View {
+    private int mScreenPtr = 0;
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
     private boolean mDrawing;
@@ -29,6 +30,12 @@ public class AndroiXBlitView extends View {
 
     }
 
+    public int initNativeScreen(int pScreen) {
+        mScreenPtr = pScreen;   /* only on 32bit */
+        Log.d("AndroiX", "[blitView] initScreen: pScreen: " + pScreen);
+        return 0;
+    }
+
     public int initFramebuffer(int width, int height, int depth, java.nio.ByteBuffer buf) {
         Log.d("AndroiX", "Initialize Framebuffer: " + width + " x " + height + " depth: " + depth);
         if (depth != 16) {
@@ -39,6 +46,7 @@ public class AndroiXBlitView extends View {
         mBuf = buf;
         return 0;
     }
+
 
     public void draw(int x, int y, int w, int h) {
         Log.d("AndroiX", "Draw from native: " + x + "," + y + "(" + w + " x " + h + ")");
