@@ -20,6 +20,7 @@ public class AndroiXService extends Service {
 
     public static AndroiXBlitView blitView;
     private static AndroiXService instance;
+    protected static AndroiXLib lib;
 
     @Override
     public void onCreate()
@@ -64,6 +65,8 @@ public class AndroiXService extends Service {
         } catch (Exception ex) { ex.printStackTrace(); Log.d("AndroiX", "failed to extract."); }
 
         Log.d("AndroiX", "Done extracting /usr");
+
+        lib = new AndroiXLib();
 
         AndroiXDixMain dixmain = new AndroiXDixMain();
         Thread mainthread = new Thread(dixmain, "AndroiX DIX Thread");

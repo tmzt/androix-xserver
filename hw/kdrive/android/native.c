@@ -89,6 +89,9 @@ void androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
 
     LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: kbd: %.8x", (unsigned int)kbd);
 
+
+
+
     jvm = Android.jvm;
     LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: jvm: %.8x", (unsigned int)jvm);
 

@@ -4,7 +4,7 @@ package net.homeip.ofn.androix;
 import android.app.Activity;
 import android.os.Bundle;
 import android.content.Context;
-import android.view.View;
+import android.view.*;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
@@ -14,7 +14,7 @@ import java.nio.*;
 
 /* 2d version */
 
-public class AndroiXBlitView extends View {
+public class AndroiXBlitView extends View implements View.OnKeyListener {
     private int mScreenPtr = 0;
     private int mKeyboardPtr = 0;
     private Bitmap mBitmap = null;
@@ -24,11 +24,12 @@ public class AndroiXBlitView extends View {
     public AndroiXBlitView(Context context) {
         super(context);
 
+        setOnKeyListener(this);
+
         int W = 800;
         int H = 480;
 
-//        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGB_565);
-
+        //mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGB_565);
     }
 
     public int initNativeScreen(int screen) {
@@ -77,6 +78,20 @@ public class AndroiXBlitView extends View {
         canvas.drawBitmap(mBitmap, 0, 0, null);
         invalidate();
     }
-}
 
+    /* OnKeyListener */
+
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        switch (event.getAction()) {
+            case KeyEvent.ACTION_DOWN:
+                AndroiXService.lib.keyDown(keyCode);
+                return true;
+            case KeyEvent.ACTION_UP:
+                AndroiXService.lib.keyUp(keyCode);
+                return true;
+            /* not handling multiple keypresses yet */
+        };
+        return false;
+    }
+}
 

@@ -13,8 +13,8 @@ libkdandroid_la_CFLAGS = 	\
 libkdandroid_la_SOURCES =	\
 	android.c		\
 	native.c		\
+	callback.c		\
 	init.c			\
-	kbd.c		\
 	os.c		\
 	mouse.c		\
 	kdandroid.h

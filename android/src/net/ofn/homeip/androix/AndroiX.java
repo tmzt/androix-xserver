@@ -21,7 +21,6 @@ public class AndroiX extends Activity
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        
 
 //        TextView  tv = new TextView(this);
 //        tv.setText( "no string from jni" );

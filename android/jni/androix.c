@@ -25,12 +25,6 @@
 //define LOG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
-/* This is a trivial JNI example where we use a native method
- * to return a new VM String. See the corresponding Java source
- * file located at:
- *
- *   apps/samples/hello-jni/project/src/com/example/HelloJni/HelloJni.java
- */
 /*
 jstring
 Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
@@ -77,3 +71,23 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
 	dix_main(1, argv, envp);
     LOG("returning from DIX (this shouldn't happen)");
 }
+
+void
+Java_net_homeip_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint keyCode )
+{
+    androidCallbackKeyDown(keyCode);
+}
+
+void
+Java_net_homeip_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint keyCode )
+{
+    androidCallbackKeyUp(keyCode);
+}
+
+
+
+
+
+
+
+
