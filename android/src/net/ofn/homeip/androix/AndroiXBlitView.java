@@ -57,7 +57,18 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
             return -1;
         }
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        AndroiX.getActivity().setContentView(this);
+
+        AndroiX.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AndroiX.getActivity().setContentView(AndroiXService.blitView);
+                AndroiXService.blitView.resume();
+                AndroiXService.blitView.invalidate();
+            }
+        });
+
+//      AndroiX.getActivity().setContentView(this);
+
         mBuf = buf;
         return 0;
     }
