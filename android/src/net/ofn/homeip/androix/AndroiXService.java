@@ -70,8 +70,8 @@ public class AndroiXService extends Service {
 
         Log.d("AndroiX", "Waiting for View");
         try { while(AndroiXService.blitView == null) Thread.sleep(250); } catch (InterruptedException e) {};
-        Log.d("AndroiX", "Waiting for mDrawing");
-        try { while(!AndroiXService.blitView.getIsDrawing()) Thread.sleep(250); } catch (InterruptedException e) {};
+        Log.d("AndroiX", "Waiting for mCreated");
+        try { while(!AndroiXService.blitView.getIsCreated()) Thread.sleep(250); } catch (InterruptedException e) {};
         Log.d("AndroiX", "Now starting the X server");
 
         AndroiXDixMain dixmain = new AndroiXDixMain();

@@ -36,6 +36,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
     }
 
     public boolean getIsDrawing() { return mDrawing; }
+    public boolean getIsCreated() { return mCreated; }
 
     public int initNativeScreen(int screen) {
         mScreenPtr = screen;   /* only on 32bit */
