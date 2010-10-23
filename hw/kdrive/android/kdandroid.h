@@ -45,7 +45,7 @@ Bool
 androidScreenInit (KdScreenInfo *screen);
 
 Bool
-androidScreenInitialize (KdScreenInfo *screen, AndroidScrPriv *scrpriv);
+androidScreenInitialize (KdScreenInfo *screen, AndroidScreenPriv *scrpriv);
     
 Bool
 androidInitScreen (ScreenPtr pScreen);
@@ -118,6 +118,9 @@ androidRandRSetConfig (ScreenPtr		pScreen,
 Bool
 androidRandRInit (ScreenPtr pScreen);
 
+void 
+androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
+
 #endif
 
 extern KdPointerDriver FakePointerDriver;
@@ -125,5 +128,13 @@ extern KdPointerDriver FakePointerDriver;
 extern KdKeyboardDriver	FakeKeyboardDriver;
 
 extern KdOsFuncs   AndroidOsFuncs;
+
+/* internal damage */
+void
+androidUnsetInternalDamage (ScreenPtr pScreen);
+
+Bool
+androidSetInternalDamage (ScreenPtr pScreen);
+
 
 #endif /* _KDANDROID_H_ */

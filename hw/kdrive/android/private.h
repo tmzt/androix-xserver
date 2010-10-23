@@ -21,9 +21,10 @@ typedef struct _androidPriv {
 
 } AndroidPriv;
 
-typedef struct _androidScrPriv {
+typedef struct _androidScreenPriv {
     Rotation	randr;
     Bool	shadow;
-} AndroidScrPriv;
+    DamagePtr   pDamage;
+} AndroidScreenPriv;
 
 #endif /* _KDANDROID_PRIV_H_ */

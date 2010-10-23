@@ -39,6 +39,12 @@ public class AndroiXBlitView extends View {
         return 0;
     }
 
+    public void draw(int x, int y, int w, int h) {
+        Log.d("AndroiX", "Draw from native: " + x + "," + y + "(" + w + " x " + h + ")");
+        mBitmap.copyPixelsFromBuffer(mBuf);
+        postInvalidate();
+    }
+
     @Override protected void onDraw(Canvas canvas) {
         canvas.drawBitmap(mBitmap, 0, 0, null);
         invalidate();

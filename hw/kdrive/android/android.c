@@ -59,7 +59,7 @@ androidCardInit (KdCardInfo *card)
 }
 
 Bool
-androidScreenInitialize (KdScreenInfo *screen, AndroidScrPriv *scrpriv)
+androidScreenInitialize (KdScreenInfo *screen, AndroidScreenPriv *scrpriv)
 {
     if (!screen->width || !screen->height)
     {
@@ -123,9 +123,9 @@ androidScreenInitialize (KdScreenInfo *screen, AndroidScrPriv *scrpriv)
 Bool
 androidScreenInit (KdScreenInfo *screen)
 {
-    AndroidScrPriv *scrpriv;
+    AndroidScreenPriv *scrpriv;
 
-    scrpriv = calloc(1, sizeof (AndroidScrPriv));
+    scrpriv = calloc(1, sizeof (AndroidScreenPriv));
     if (!scrpriv)
 	return FALSE;
     screen->driver = scrpriv;
@@ -158,7 +158,7 @@ androidWindowLinear (ScreenPtr	pScreen,
 Bool
 androidMapFramebuffer (KdScreenInfo *screen)
 {
-    AndroidScrPriv	*scrpriv = screen->driver;
+    AndroidScreenPriv	*scrpriv = screen->driver;
     KdPointerMatrix	m;
     AndroidPriv		*priv = screen->card->driver;
 
@@ -199,7 +199,7 @@ androidSetScreenSizes (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    AndroidScrPriv	*scrpriv = screen->driver;
+    AndroidScreenPriv	*scrpriv = screen->driver;
 
     if (scrpriv->randr & (RR_Rotate_0|RR_Rotate_180))
     {
@@ -235,7 +235,7 @@ androidSetShadow (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    AndroidScrPriv	*scrpriv = screen->driver;
+    AndroidScreenPriv	*scrpriv = screen->driver;
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
 
@@ -255,7 +255,7 @@ androidRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	    *screen = pScreenPriv->screen;
-    AndroidScrPriv	    *scrpriv = screen->driver;
+    AndroidScreenPriv	    *scrpriv = screen->driver;
     RRScreenSizePtr	    pSize;
     Rotation		    randr;
     int			    n;
@@ -289,9 +289,9 @@ androidRandRSetConfig (ScreenPtr		pScreen,
 {
     KdScreenPriv(pScreen);
     KdScreenInfo	*screen = pScreenPriv->screen;
-    AndroidScrPriv	*scrpriv = screen->driver;
+    AndroidScreenPriv	*scrpriv = screen->driver;
     Bool		wasEnabled = pScreenPriv->enabled;
-    AndroidScrPriv	oldscr;
+    AndroidScreenPriv	oldscr;
     int			oldwidth;
     int			oldheight;
     int			oldmmwidth;
@@ -420,7 +420,20 @@ androidFinishInitScreen (ScreenPtr pScreen)
 Bool
 androidCreateResources (ScreenPtr pScreen)
 {
-    return androidSetShadow (pScreen);
+    KdScreenPriv(pScreen);
+    KdScreenInfo	*screen    = pScreenPriv->screen;
+    AndroidScreenPriv *scrpriv  = screen->driver;
+
+    if (scrpriv->shadow)
+        return KdShadowSet (pScreen,
+            scrpriv->randr,
+            androidShadowUpdate,
+            androidWindowLinear
+        );
+    else
+        return androidSetInternalDamage(pScreen);
+
+    //return androidSetShadow (pScreen);
 }
 
 void
@@ -480,3 +493,126 @@ void
 androidPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
 }
+
+/* track damage and update the process */
+/* based on ephyr */
+
+void 
+androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
+{
+  KdScreenPriv(pScreen);
+  KdScreenInfo *screen = pScreenPriv->screen;
+  
+//  EPHYR_LOG("slow paint");
+  
+  /* FIXME: Slow Rotated/Reflected updates could be much
+   * much faster efficiently updating via tranforming 
+   * pBuf->pDamage  regions     
+  */
+  shadowUpdateRotatePacked(pScreen, pBuf);
+  //hostx_paint_rect(screen, 0,0,0,0, screen->width, screen->height);
+  androidDraw(screen, 0, 0, /*?*/ screen->width, screen->height);
+}
+
+static void
+androidInternalDamageRedisplay (ScreenPtr pScreen)
+{
+  KdScreenPriv(pScreen);
+  KdScreenInfo	*screen = pScreenPriv->screen;
+  AndroidScreenPriv	*scrpriv = screen->driver;
+  RegionPtr	 pRegion;
+
+  if (!scrpriv || !scrpriv->pDamage)
+    return;
+
+  pRegion = DamageRegion (scrpriv->pDamage);
+
+  if (RegionNotEmpty(pRegion))
+    {
+      int           nbox;
+      BoxPtr        pbox;
+
+      nbox = RegionNumRects (pRegion);
+      pbox = RegionRects (pRegion);
+
+      while (nbox--)
+        {
+/*
+          hostx_paint_rect(screen,
+                           pbox->x1, pbox->y1,
+                           pbox->x1, pbox->y1,
+                           pbox->x2 - pbox->x1,
+                           pbox->y2 - pbox->y1);
+*/
+          androidDraw(screen, pbox->x1, pbox->y1,
+                           /* ? */
+                           pbox->x2 - pbox->x1,
+                           pbox->y2 - pbox->y1);
+          pbox++;
+        }
+      DamageEmpty (scrpriv->pDamage);
+    }
+}
+
+static void
+androidInternalDamageBlockHandler (pointer   data,
+				 OSTimePtr pTimeout,
+				 pointer   pRead)
+{
+  ScreenPtr pScreen = (ScreenPtr) data;
+  
+  androidInternalDamageRedisplay (pScreen);
+}
+
+static void
+androidInternalDamageWakeupHandler (pointer data, int i, pointer LastSelectMask)
+{
+  /* FIXME: Not needed ? */
+}
+
+Bool
+androidSetInternalDamage (ScreenPtr pScreen)
+{
+  KdScreenPriv(pScreen);
+  KdScreenInfo	*screen = pScreenPriv->screen;
+  AndroidScreenPriv	*scrpriv = screen->driver;
+  PixmapPtr      pPixmap = NULL;
+  
+  scrpriv->pDamage = DamageCreate ((DamageReportFunc) 0,
+				   (DamageDestroyFunc) 0,
+				   DamageReportNone,
+				   TRUE,
+				   pScreen,
+				   pScreen);
+  
+  if (!RegisterBlockAndWakeupHandlers (androidInternalDamageBlockHandler,
+				       androidInternalDamageWakeupHandler,
+				       (pointer) pScreen))
+    return FALSE;
+  
+  pPixmap = (*pScreen->GetScreenPixmap) (pScreen);
+  
+  DamageRegister (&pPixmap->drawable, scrpriv->pDamage);
+      
+  return TRUE;
+}
+
+void
+androidUnsetInternalDamage (ScreenPtr pScreen)
+{
+  KdScreenPriv(pScreen);
+  KdScreenInfo	*screen = pScreenPriv->screen;
+  AndroidScreenPriv	*scrpriv = screen->driver;
+  PixmapPtr      pPixmap = NULL;
+  
+  pPixmap = (*pScreen->GetScreenPixmap) (pScreen);
+  DamageUnregister (&pPixmap->drawable, scrpriv->pDamage);
+  DamageDestroy (scrpriv->pDamage);
+  
+  RemoveBlockAndWakeupHandlers (androidInternalDamageBlockHandler,
+				androidInternalDamageWakeupHandler,
+				(pointer) pScreen);
+}
+
+
+

@@ -7,6 +7,6 @@
 
 int androidInitNative(AndroidPriv *priv);
 int androidInitFramebuffer(AndroidPriv *priv, int width, int height, int depth);
-void androidDraw(AndroidPriv *priv, int x, int y, int w, int h);
+void androidDraw(KdScreenInfo *screen, int x, int y, int w, int h);
 
 #endif /* _KDANDROID_NATIVE_H_ */
