@@ -162,7 +162,7 @@ androidMapFramebuffer (KdScreenInfo *screen)
     KdPointerMatrix	m;
     AndroidPriv		*priv = screen->card->driver;
 
-#if 0
+#if 1
     if (scrpriv->randr != RR_Rotate_0)
 	scrpriv->shadow = TRUE;
     else
@@ -170,6 +170,8 @@ androidMapFramebuffer (KdScreenInfo *screen)
 #else
     scrpriv->shadow = TRUE;
 #endif
+
+    LogMessage(X_DEFAULT, "[native] androidMapFramebuffer: shadow: %d", (int)scrpriv->shadow);
     
     KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
     
