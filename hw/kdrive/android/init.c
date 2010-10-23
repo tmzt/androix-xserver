@@ -52,7 +52,7 @@ InitInput (int argc, char **argv)
     ki = KdNewKeyboard ();
     if (!ki)
         return;
-    ki->driver = &FakeKeyboardDriver;
+    ki->driver = &AndroidKeyboardDriver;
     KdAddKeyboard(ki);
 
     KdInitInput ();

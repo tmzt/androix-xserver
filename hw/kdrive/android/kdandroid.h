@@ -34,6 +34,12 @@
 #include "native.h"
 
 extern KdCardFuncs  androidFuncs;
+extern KdKeyboardInfo *androidKbd;
+extern KdPointerInfo *androidMouse;
+
+/* drivers */
+extern KdPointerDriver AndroidMouseDriver;
+extern KdKeyboardDriver	AndroidKeyboardDriver;
 
 Bool
 androidInitialize (KdCardInfo *card, AndroidPriv *priv);

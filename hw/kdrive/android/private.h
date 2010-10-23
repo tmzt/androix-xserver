@@ -27,4 +27,12 @@ typedef struct _androidScreenPriv {
     DamagePtr   pDamage;
 } AndroidScreenPriv;
 
+typedef struct _androidKeyboardPriv {
+    Bool    enabled;
+} AndroidKeyboardPriv;
+
+typedef struct _androidPointerPriv {
+    Bool    enabled;
+} AndroidPointerPriv;
+
 #endif /* _KDANDROID_PRIV_H_ */

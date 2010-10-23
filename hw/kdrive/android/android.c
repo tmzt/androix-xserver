@@ -27,6 +27,9 @@
 
 extern int KdTsPhyScreen;
 
+KdKeyboardInfo *androidKbd;
+//KdPointerInfo *androidMouse;
+
 Bool
 androidInitialize (KdCardInfo *card, AndroidPriv *priv)
 {
@@ -506,7 +509,7 @@ androidPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 }
 
 /* track damage and update the process */
-/* based on ephyr */
+/* based on Android */
 
 void 
 androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
@@ -514,7 +517,7 @@ androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
   KdScreenPriv(pScreen);
   KdScreenInfo *screen = pScreenPriv->screen;
   
-//  EPHYR_LOG("slow paint");
+//  Android_LOG("slow paint");
   
   /* FIXME: Slow Rotated/Reflected updates could be much
    * much faster efficiently updating via tranforming 
@@ -625,5 +628,84 @@ androidUnsetInternalDamage (ScreenPtr pScreen)
 				(pointer) pScreen);
 }
 
+/* Keyboard */
 
+static Status
+AndroidKeyboardInit (KdKeyboardInfo *ki)
+{
+  ki->driverPrivate = (AndroidKeyboardPriv *)
+                       calloc(sizeof(AndroidKeyboardPriv), 1);
+
+  /*
+  hostx_load_keymap();
+  if (!AndroidKeySyms.map) {
+      ErrorF("Couldn't load keymap from host\n");
+      return BadAlloc;
+  }
+  */
+
+  /*
+  ki->minScanCode = AndroidKeySyms.minKeyCode;
+  ki->maxScanCode = AndroidKeySyms.maxKeyCode;
+  */
+
+/*
+http://developer.android.com/reference/android/view/KeyEvent.html#MAX_KEYCODE
+This constant is deprecated.
+There are now more than MAX_KEYCODE keycodes. Use getMaxKeyCode() instead.
+
+MAX_KEYCODE current value: 84
+*/
+
+  ki->minScanCode = 0; /* ? */
+  ki->maxScanCode = 84; /* FIXME */
+
+  free(ki->name);
+  ki->name = strdup("AndroiX virtual keyboard");
+  androidKbd = ki;
+  return Success;
+}
+
+static Status
+AndroidKeyboardEnable (KdKeyboardInfo *ki)
+{
+    ((AndroidKeyboardPriv *)ki->driverPrivate)->enabled = TRUE;
+
+    return Success;
+}
+
+static void
+AndroidKeyboardDisable (KdKeyboardInfo *ki)
+{
+    ((AndroidKeyboardPriv *)ki->driverPrivate)->enabled = FALSE;
+}
+
+static void
+AndroidKeyboardFini (KdKeyboardInfo *ki)
+{
+    androidKbd = NULL;
+    return;
+}
+
+static void
+AndroidKeyboardLeds (KdKeyboardInfo *ki, int leds)
+{
+}
+
+static void
+AndroidKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int duration)
+{
+}
+
+
+KdKeyboardDriver AndroidKeyboardDriver = {
+    "android",
+    AndroidKeyboardInit,
+    AndroidKeyboardEnable,
+    AndroidKeyboardLeds,
+    AndroidKeyboardBell,
+    AndroidKeyboardDisable,
+    AndroidKeyboardFini,
+    NULL,
+};
 
