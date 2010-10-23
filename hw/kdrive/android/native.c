@@ -98,8 +98,12 @@ int androidInitNativeFramebuffer(KdScreenInfo *screen, int width, int height, in
     (*(Android->jvm))->AttachCurrentThread(priv->jvm, &jni_env, NULL);
     LogMessage(X_DEFAULT, "[native] androidInitNativeFramebuffer: jni_env: %.8x", (unsigned int)jni_env);
 
+    LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: priv->AndroiXBlitView_class: %d", priv->AndroiXBlitView_class);
     priv->initFramebuffer = (*jni_env)->GetMethodID(jni_env, priv->AndroiXBlitView_class, "initFramebuffer", "(IIILjava/nio/ByteBuffer;)I");
     priv->draw = (*jni_env)->GetMethodID(jni_env, priv->AndroiXBlitView_class, "draw", "(IIII)V");
+
+    LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: priv->initFramebuffer: %d", priv->initFramebuffer);
+    LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: priv->draw: %d", priv->draw);
 
     int bpp = depth/8;
     android->buf = (*jni_env)->NewDirectByteBuffer(jni_env, android->base, (width*height*bpp));
@@ -116,12 +120,12 @@ void androidDraw(KdScreenInfo *screen, int x, int y, int w, int h) {
     JNIEnv *jni_env;
     AndroidScreenPriv *priv = screen->driver;
 
-    LogMessage(X_DEFAULT, "[native] androidDraw: screen: %p", screen);
-
     (*(priv->jvm))->AttachCurrentThread(priv->jvm, &jni_env, NULL);
     LogMessage(X_DEFAULT, "[native] androidDraw: jni_env: %.8x", (unsigned int)jni_env);
 
     //draw = (*jni_env)->GetMethodID(jni_env, priv->AndroiXBlitView_class, "draw", "(IIII)V");
+    LogMessage(X_DEFAULT, "[native] androidDraw: blitview: %p", priv->blitview);
+    LogMessage(X_DEFAULT, "[native] androidDraw: draw: %d", priv->draw);
     (*jni_env)->CallVoidMethod(jni_env, priv->blitview, priv->draw, x, y, w, h);
     LogMessage(X_DEFAULT, "[native] androidDraw: draw finished");
 }
