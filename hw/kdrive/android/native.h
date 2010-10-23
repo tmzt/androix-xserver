@@ -9,8 +9,12 @@
 
 typedef struct _androidVars {
     JavaVM *jvm;
+
+    /* Global references established in androidInitNative */
+    jclass AndroiXService_class;
+    jclass AndroiXBlitView_class;
+    jobject blitview;
     
-    KdPointerInfo *mouse;
 } AndroidVars;
 
 typedef struct _androidNativeKeyboard {

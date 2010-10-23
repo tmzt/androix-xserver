@@ -9,18 +9,24 @@
 extern JavaVM *xandroid_jvm;
 extern JNIEnv *xandroid_jni_env;
 
-static AndroidVars Android;
+static AndroidVars *Android;
 
 int androidInitNative(AndroidPriv *priv)
 {
 //    jfieldID blitview_id;
+    JNIEnv *jni_env;
+    jclass AndroiXService_class;
+    jfieldID blitview_id;
+    jclass AndroiXBlitView_class;
+    jobject blitview;
 
-    LogMessage(X_DEFAULT, "[native] xandroid_jvm: %.8x", (unsigned int)xandroid_jvm);
+    Android = (AndroidVars *)calloc(sizeof(AndroidVars), 1);
 
-    if (!priv->jvm)
-        priv->jvm = xandroid_jvm;
+    LogMessage(X_DEFAULT, "[native] xandroid_jvm: %p", xandroid_jvm);
 
-    LogMessage(X_DEFAULT, "[native] priv->jvm: %.8x", (unsigned int)xandroid_jvm);
+    priv->jvm = xandroid_jvm;
+
+    LogMessage(X_DEFAULT, "[native] priv->jvm: %p", priv->jvm);
 
     if (!priv->jvm) {
         ErrorF("missing JavaVM");
@@ -28,7 +34,25 @@ int androidInitNative(AndroidPriv *priv)
     }
 
     /* save for drivers */
-    Android.jvm = priv->jvm;
+    LogMessage(X_DEFAULT, "[native] init: Android: %p", Android);
+    Android->jvm = priv->jvm;
+    LogMessage(X_DEFAULT, "[native] init: Android->jvm: %p", Android->jvm);
+
+    (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
+    LogMessage(X_DEFAULT, "[native] init: jni_env: %p", jni_env);
+    AndroiXService_class = (*jni_env)->FindClass(jni_env, "net/homeip/ofn/androix/AndroiXService");
+    LogMessage(X_DEFAULT, "[native] init: local AndroiXService_class: %p", AndroiXService_class);
+
+    blitview_id = (*jni_env)->GetStaticFieldID(jni_env, AndroiXService_class, "blitView", "Lnet/homeip/ofn/androix/AndroiXBlitView;");
+    blitview = (*jni_env)->GetStaticObjectField(jni_env, AndroiXService_class, blitview_id);
+    LogMessage(X_DEFAULT, "[native] init: local blitview: %p", blitview);
+
+    AndroiXBlitView_class = (*jni_env)->GetObjectClass(jni_env, blitview);
+    LogMessage(X_DEFAULT, "[native] init: local AndroiXBlitView_class: %p", AndroiXBlitView_class);
+
+    Android->AndroiXService_class = (*jni_env)->NewGlobalRef(jni_env, AndroiXService_class);
+    Android->AndroiXBlitView_class = (*jni_env)->NewGlobalRef(jni_env, AndroiXBlitView_class);
+    Android->blitview = (*jni_env)->NewGlobalRef(jni_env, blitview);
 
     return 0;
 }
@@ -45,35 +69,13 @@ void androidInitNativeScreen(KdScreenInfo *screen) {
     jobject blitview;
     jmethodID initNativeScreen;
 
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: screen: %.8x", (unsigned int)screen);
-    priv = screen->card->driver;
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: priv: %.8x", (unsigned int)priv);
-
-    (*(priv->jvm))->AttachCurrentThread(priv->jvm, (void**)&jni_env, NULL);
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: jni_env: %.8x", (unsigned int)jni_env);
-
-    AndroiXService_class = (*jni_env)->FindClass(jni_env, "net/homeip/ofn/androix/AndroiXService");
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: AndroiXService_class: %.8x", (unsigned int)AndroiXService_class);
-
-    blitview_id = (*jni_env)->GetStaticFieldID(jni_env, AndroiXService_class, "blitView", "Lnet/homeip/ofn/androix/AndroiXBlitView;");
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: blitview_id: %.8x", (unsigned int)blitview_id);
-
-    blitview = (*jni_env)->GetStaticObjectField(jni_env, AndroiXService_class, blitview_id);
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: blitview: %.8x", (unsigned int)blitview);
-
-    AndroiXBlitView_class = (*jni_env)->GetObjectClass(jni_env, blitview);
-    LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: AndroiXBlitView_class: %.8x", (unsigned int)blitview);
-
-    initNativeScreen = (*jni_env)->GetMethodID(jni_env, AndroiXBlitView_class, "initNativeScreen", "(I)I");
+    initNativeScreen = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeScreen", "(I)I");
     LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: initNativeScreen: %.8x", (unsigned int)initNativeScreen);
 
     LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: screen: %.8x", (unsigned int)screen);
-    jint res = (*jni_env)->CallIntMethod(jni_env, blitview, initNativeScreen, screen);
+    jint res = (*jni_env)->CallIntMethod(jni_env, Android->blitview, initNativeScreen, screen);
     LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: res: %.8x", (unsigned int)res);
 
-    (*jni_env)->DeleteLocalRef(jni_env, blitview);
-    (*jni_env)->DeleteLocalRef(jni_env, AndroiXBlitView_class);
-    (*jni_env)->DeleteLocalRef(jni_env, AndroiXService_class);
 }
 
 void androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
@@ -92,7 +94,7 @@ void androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
 
 
 
-    jvm = Android.jvm;
+    jvm = Android->jvm;
     LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: jvm: %.8x", (unsigned int)jvm);
 
     (*jvm)->AttachCurrentThread(jvm, (void**)&jni_env, NULL);
