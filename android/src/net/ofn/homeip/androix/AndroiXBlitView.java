@@ -62,6 +62,9 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
             @Override
             public void run() {
                 AndroiX.getActivity().setContentView(AndroiXService.blitView);
+                setOnKeyListener(AndroiXService.blitView);
+                AndroiXService.blitView.setFocusable(true);
+                AndroiXService.blitView.setFocusableInTouchMode(true);
                 AndroiXService.blitView.resume();
                 AndroiXService.blitView.invalidate();
             }
