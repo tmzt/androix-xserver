@@ -28,7 +28,7 @@ public class AndroiXBlitView extends View {
 
     }
 
-    public int initFramebuffer(int width, int height, int depth, ByteBuffer buf) {
+    public int initFramebuffer(int width, int height, int depth, java.nio.ByteBuffer buf) {
         Log.d("AndroiX", "Initialize Framebuffer: " + width + " x " + height + " depth: " + depth);
         if (depth != 16) {
             Log.d("AndroiX", "Bad depth: " + depth);

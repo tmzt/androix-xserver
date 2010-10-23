@@ -55,7 +55,7 @@ int androidInitFramebuffer(AndroidPriv *priv, int width, int height, int depth)
 
     AndroiXBlitView_class = (*jni_env)->GetObjectClass(jni_env, blitview);
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: AndroiXBlitView_class: %.8x", (unsigned int)blitview);
-    init = (*jni_env)->GetMethodID(jni_env, AndroiXBlitView_class, "initFramebuffer", "(IIILjava.nio.ByteBuffer;)I");
+    init = (*jni_env)->GetMethodID(jni_env, AndroiXBlitView_class, "initFramebuffer", "(IIILjava/nio/ByteBuffer;)I");
     LogMessage(X_DEFAULT, "[native] androidInitFramebuffer: init: %.8x", (unsigned int)blitview);
 
     int bpp = depth/8;
