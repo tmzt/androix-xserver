@@ -672,6 +672,7 @@ MAX_KEYCODE current value: 84
   androidKbd = ki;
 
   res = androidInitNativeKeyboard(ki);
+  LogMessage(X_DEFAULT, "[native] AndroidKeyboardInit: res: %d", res);
   if (res) return res;
 
   return Success;

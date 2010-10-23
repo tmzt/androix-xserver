@@ -28,7 +28,8 @@ typedef struct _androidNativeKeyboard {
 
 int androidInitNative(AndroidPriv *priv);
 void androidInitNativeScreen(KdScreenInfo *pScreen);
-int androidInitFramebuffer(AndroidPriv *priv, int width, int height, int depth);
+int androidInitNativeKeyboard(KdKeyboardInfo *kbd);
+int androidInitNativeFramebuffer(KdScreenInfo *pScreen, int width, int height, int depth);
 void androidDraw(KdScreenInfo *screen, int x, int y, int w, int h);
 
 #endif /* _KDANDROID_NATIVE_H_ */

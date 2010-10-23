@@ -67,7 +67,7 @@ void androidInitNativeScreen(KdScreenInfo *screen) {
 
 }
 
-void androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
+int androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
     LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard");
     JNIEnv *jni_env;
     jmethodID initNativeKeyboard;
@@ -81,6 +81,7 @@ void androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
     LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: kbd: %p", kbd);
     jint res = (*jni_env)->CallIntMethod(jni_env, Android->blitview, initNativeKeyboard, kbd);
     LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: res: %d", res);
+    return res;
 }
 
 int androidInitNativeFramebuffer(KdScreenInfo *screen, int width, int height, int depth)

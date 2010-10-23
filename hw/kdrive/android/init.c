@@ -53,15 +53,18 @@ InitInput (int argc, char **argv)
 #endif
 
     pi = KdNewPointer ();
+    LogMessage(X_DEFAULT, "[native] InitInput: pointer ki: %p", ki);
     if (!pi)
         return;
     pi->driver = &FakePointerDriver;
     KdAddPointer(pi);
 
     ki = KdNewKeyboard ();
+    LogMessage(X_DEFAULT, "[native] InitInput: keyboard ki: %p", ki);
     if (!ki)
         return;
     ki->driver = &AndroidKeyboardDriver;
+    ki->name = strdup("Android Keyboard Driver");
     KdAddKeyboard(ki);
 
     KdInitInput ();
