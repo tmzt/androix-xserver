@@ -57,10 +57,10 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
             return -1;
         }
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        AndroiX.getActivity().setContentView(this);
         mBuf = buf;
         return 0;
     }
-
 
     public void draw(int x, int y, int w, int h) {
         Log.d("AndroiX", "Draw from native: " + x + "," + y + "(" + w + " x " + h + ")");

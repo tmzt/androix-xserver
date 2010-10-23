@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.view.View;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,8 @@ public class AndroiXService extends Service {
     public static AndroiXBlitView blitView;
     private static AndroiXService instance;
     protected static AndroiXLib lib;
+
+    public static AndroiXService getService() { return instance; }
 
     @Override
     public void onCreate()

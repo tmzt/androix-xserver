@@ -14,6 +14,9 @@ import android.widget.TextView;
 
 public class AndroiX extends Activity
 {
+    private static AndroiX instance;
+    public static AndroiX getActivity() { return instance; }
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -50,7 +53,9 @@ public class AndroiX extends Activity
 //      Log.d("AndroiX", "Waiting for View in Activity");
 //      try { while(AndroiXService.blitView == null) Thread.sleep(250); } catch (InterruptedException e) {};
 //      Log.d("AndroiX", "Setting the View");
-        setContentView(AndroiXService.blitView); 
+//        setContentView(AndroiXService.blitView); 
+
+        instance = this;
     }
 
     @Override
