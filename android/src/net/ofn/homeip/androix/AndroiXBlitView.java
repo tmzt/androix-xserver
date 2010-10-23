@@ -19,7 +19,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
     private int mKeyboardPtr = 0;
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
-    private boolean mDrawing;
+    private boolean mDrawing = false;
 
     public AndroiXBlitView(Context context) {
         super(context);

@@ -635,6 +635,8 @@ AndroidKeyboardInit (KdKeyboardInfo *ki)
 {
   int res;
 
+  LogMessage(X_DEFAULT, "[native] AndroidKeyboardInit: ki: %p", ki);
+
   ki->driverPrivate = (AndroidKeyboardPriv *)
                        calloc(sizeof(AndroidKeyboardPriv), 1);
 
@@ -678,9 +680,11 @@ MAX_KEYCODE current value: 84
 static Status
 AndroidKeyboardEnable (KdKeyboardInfo *ki)
 {
-    ((AndroidKeyboardPriv *)ki->driverPrivate)->enabled = TRUE;
+  LogMessage(X_DEFAULT, "[native] AndroidKeyboardEnable: ki: %p", ki);
 
-    return Success;
+  ((AndroidKeyboardPriv *)ki->driverPrivate)->enabled = TRUE;
+
+  return Success;
 }
 
 static void
