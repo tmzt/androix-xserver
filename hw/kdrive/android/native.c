@@ -9,6 +9,8 @@
 extern JavaVM *xandroid_jvm;
 extern JNIEnv *xandroid_jni_env;
 
+static AndroidVars Android;
+
 int androidInitNative(AndroidPriv *priv)
 {
 //    jfieldID blitview_id;
@@ -24,6 +26,9 @@ int androidInitNative(AndroidPriv *priv)
         ErrorF("missing JavaVM");
         return -1;
     }
+
+    /* save for drivers */
+    Android.jvm = priv->jvm;
 
     return 0;
 }
@@ -65,6 +70,49 @@ void androidInitNativeScreen(KdScreenInfo *screen) {
     LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: screen: %.8x", (unsigned int)screen);
     jint res = (*jni_env)->CallIntMethod(jni_env, blitview, initNativeScreen, screen);
     LogMessage(X_DEFAULT, "[native] androidInitNativeScreen: res: %.8x", (unsigned int)res);
+
+    (*jni_env)->DeleteLocalRef(jni_env, blitview);
+    (*jni_env)->DeleteLocalRef(jni_env, AndroiXBlitView_class);
+    (*jni_env)->DeleteLocalRef(jni_env, AndroiXService_class);
+}
+
+void androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard");
+    JavaVM *jvm;
+    JNIEnv *jni_env;
+
+    jclass AndroiXService_class;
+    jfieldID blitview_id;
+    jclass AndroiXBlitView_class;
+    jobject blitview;
+    jmethodID initNativeKeyboard;
+
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: kbd: %.8x", (unsigned int)kbd);
+
+    jvm = Android.jvm;
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: jvm: %.8x", (unsigned int)jvm);
+
+    (*jvm)->AttachCurrentThread(jvm, (void**)&jni_env, NULL);
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: jni_env: %.8x", (unsigned int)jni_env);
+
+    AndroiXService_class = (*jni_env)->FindClass(jni_env, "net/homeip/ofn/androix/AndroiXService");
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: AndroiXService_class: %.8x", (unsigned int)AndroiXService_class);
+
+    blitview_id = (*jni_env)->GetStaticFieldID(jni_env, AndroiXService_class, "blitView", "Lnet/homeip/ofn/androix/AndroiXBlitView;");
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: blitview_id: %.8x", (unsigned int)blitview_id);
+
+    blitview = (*jni_env)->GetStaticObjectField(jni_env, AndroiXService_class, blitview_id);
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: blitview: %.8x", (unsigned int)blitview);
+
+    AndroiXBlitView_class = (*jni_env)->GetObjectClass(jni_env, blitview);
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: AndroiXBlitView_class: %.8x", (unsigned int)blitview);
+
+    initNativeKeyboard = (*jni_env)->GetMethodID(jni_env, AndroiXBlitView_class, "initNativeKeyboard", "(I)I");
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: initNativeKeyboard: %.8x", (unsigned int)initNativeKeyboard);
+
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: kbd: %.8x", (unsigned int)kbd);
+    jint res = (*jni_env)->CallIntMethod(jni_env, blitview, initNativeKeyboard, kbd);
+    LogMessage(X_DEFAULT, "[native] androidInitNativeKeyboard: res: %.8x", (unsigned int)res);
 
     (*jni_env)->DeleteLocalRef(jni_env, blitview);
     (*jni_env)->DeleteLocalRef(jni_env, AndroiXBlitView_class);

@@ -5,6 +5,23 @@
 #include <unistd.h>
 #include "kdrive.h"
 
+#include <jni.h>
+
+typedef struct _androidVars {
+    JavaVM *jvm;
+    
+    KdPointerInfo *mouse;
+} AndroidVars;
+
+typedef struct _androidNativeKeyboard {
+    KdKeyboardInfo *kbd;
+    void (*keyDown)(int keyCode);
+    void (*keyUp)(int keyCode);
+    /* expand */
+} AndroidNativeKeyboard;
+
+//extern Android *xdandroid_Android;
+
 int androidInitNative(AndroidPriv *priv);
 void androidInitNativeScreen(KdScreenInfo *pScreen);
 int androidInitFramebuffer(AndroidPriv *priv, int width, int height, int depth);

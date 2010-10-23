@@ -633,6 +633,8 @@ androidUnsetInternalDamage (ScreenPtr pScreen)
 static Status
 AndroidKeyboardInit (KdKeyboardInfo *ki)
 {
+  int res;
+
   ki->driverPrivate = (AndroidKeyboardPriv *)
                        calloc(sizeof(AndroidKeyboardPriv), 1);
 
@@ -663,6 +665,10 @@ MAX_KEYCODE current value: 84
   free(ki->name);
   ki->name = strdup("AndroiX virtual keyboard");
   androidKbd = ki;
+
+  res = androidInitNativeKeyboard(ki);
+  if (res) return res;
+
   return Success;
 }
 

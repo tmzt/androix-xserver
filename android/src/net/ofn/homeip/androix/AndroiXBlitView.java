@@ -16,6 +16,7 @@ import java.nio.*;
 
 public class AndroiXBlitView extends View {
     private int mScreenPtr = 0;
+    private int mKeyboardPtr = 0;
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
     private boolean mDrawing;
@@ -30,9 +31,15 @@ public class AndroiXBlitView extends View {
 
     }
 
-    public int initNativeScreen(int pScreen) {
-        mScreenPtr = pScreen;   /* only on 32bit */
-        Log.d("AndroiX", "[blitView] initScreen: pScreen: " + pScreen);
+    public int initNativeScreen(int screen) {
+        mScreenPtr = screen;   /* only on 32bit */
+        Log.d("AndroiX", "[blitView] initNativeScreen: screen: " + screen);
+        return 0;
+    }
+
+    public int initNativeKeyboard(int kbd) {
+        mKeyboardPtr = kbd;   /* only on 32bit */
+        Log.d("AndroiX", "[blitView] initNativeKeyboard: kbd: " + kbd);
         return 0;
     }
 
