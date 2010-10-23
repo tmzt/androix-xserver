@@ -28,6 +28,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
         setOnKeyListener(this);
         setFocusable(true);
         setFocusableInTouchMode(true);
+        requestFocus();
 
         int W = 800;
         int H = 480;
@@ -65,6 +66,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
                 setOnKeyListener(AndroiXService.blitView);
                 AndroiXService.blitView.setFocusable(true);
                 AndroiXService.blitView.setFocusableInTouchMode(true);
+                AndroiXService.blitView.requestFocus();
                 AndroiXService.blitView.resume();
                 AndroiXService.blitView.invalidate();
             }
