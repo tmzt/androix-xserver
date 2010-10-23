@@ -73,15 +73,17 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
 }
 
 void
-Java_net_homeip_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint keyCode )
+Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
 {
-    androidCallbackKeyDown(keyCode);
+    LOG("keyDown: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
+    androidCallbackKeyDown(kbd, keyCode);
 }
 
 void
-Java_net_homeip_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint keyCode )
+Java_net_homeip_ofn_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
 {
-    androidCallbackKeyUp(keyCode);
+    LOG("keyUp: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
+    androidCallbackKeyUp(kbd, keyCode);
 }
 
 

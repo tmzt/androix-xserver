@@ -25,6 +25,8 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
         super(context);
 
         setOnKeyListener(this);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
 
         int W = 800;
         int H = 480;
@@ -84,10 +86,12 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         switch (event.getAction()) {
             case KeyEvent.ACTION_DOWN:
-                AndroiXService.lib.keyDown(keyCode);
+                Log.d("AndroiX", "onKey: ACTION_DOWN keyCode: " + keyCode);
+                AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
                 return true;
             case KeyEvent.ACTION_UP:
-                AndroiXService.lib.keyUp(keyCode);
+                Log.d("AndroiX", "onKey: ACTION_UP keyCode: " + keyCode);
+                AndroiXService.lib.keyUp(mKeyboardPtr, keyCode);
                 return true;
             /* not handling multiple keypresses yet */
         };
