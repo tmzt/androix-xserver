@@ -19,6 +19,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
     private int mKeyboardPtr = 0;
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
+    private boolean mCreated = false;
     private boolean mDrawing = false;
 
     public AndroiXBlitView(Context context) {
@@ -33,6 +34,8 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
 
         //mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGB_565);
     }
+
+    public boolean getIsDrawing() { return mDrawing; }
 
     public int initNativeScreen(int screen) {
         mScreenPtr = screen;   /* only on 32bit */
@@ -77,6 +80,14 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
     }
 
     @Override protected void onDraw(Canvas canvas) {
+        // assume we're created
+        mCreated = true;
+
+        if (mBitmap == null) {
+            Log.d("AndroiX", "mBitmap not ready, did [native] run?");
+            postInvalidate(); // call us again
+        }
+
         canvas.drawBitmap(mBitmap, 0, 0, null);
         invalidate();
     }
