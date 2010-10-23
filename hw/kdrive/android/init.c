@@ -43,6 +43,9 @@ InitInput (int argc, char **argv)
     KdPointerInfo *pi;
     KdKeyboardInfo *ki;
 
+    KdAddKeyboardDriver(&AndroidKeyboardDriver);
+    KdAddPointerDriver(&FakePointerDriver);
+
     pi = KdNewPointer ();
     if (!pi)
         return;
