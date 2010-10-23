@@ -17,6 +17,7 @@ import java.nio.*;
 public class AndroiXBlitView extends View {
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
+    private boolean mDrawing;
 
     public AndroiXBlitView(Context context) {
         super(context);
@@ -41,8 +42,20 @@ public class AndroiXBlitView extends View {
 
     public void draw(int x, int y, int w, int h) {
         Log.d("AndroiX", "Draw from native: " + x + "," + y + "(" + w + " x " + h + ")");
+        if (!mDrawing) {
+            Log.d("AndroiX", "draw ignored while suspended");
+            return;
+        }
         mBitmap.copyPixelsFromBuffer(mBuf);
         postInvalidate();
+    }
+
+    public void suspend() {
+        mDrawing = false;
+    }
+
+    public void resume() {
+        mDrawing = true;
     }
 
     @Override protected void onDraw(Canvas canvas) {
