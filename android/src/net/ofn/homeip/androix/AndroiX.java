@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 public class AndroiX extends Activity
 {
-    private static AndroiX instance;
+    private static AndroiX instance = null;
     public static AndroiX getActivity() { return instance; }
 
     /** Called when the activity is first created. */
@@ -85,6 +85,8 @@ public class AndroiX extends Activity
     @Override
     public void onDestroy()
     {
+        instance = null;
+        super.onDestroy();
         Log.d("AndroiX", "destroyed");
     }
 
