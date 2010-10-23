@@ -60,6 +60,7 @@ public class AndroiX extends Activity
     public void onResume()
     {
         Log.d("AndroiX", "resumed");
+        super.onResume();
         if (AndroiXService.blitView != null) {
             try { setContentView(AndroiXService.blitView); }
             catch (IllegalStateException ex) {
@@ -67,8 +68,8 @@ public class AndroiX extends Activity
                 g.removeView(AndroiXService.blitView);
                 setContentView(AndroiXService.blitView);
             }
+            AndroiXService.blitView.resume();
         }
-        AndroiXService.blitView.resume();
     }
 
     @Override
