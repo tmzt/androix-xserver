@@ -25,6 +25,11 @@ typedef struct _androidScreenPriv {
     Rotation	randr;
     Bool	shadow;
     DamagePtr   pDamage;
+    JavaVM *jvm;
+    jclass      AndroiXBlitView_class;
+    jobject     blitview;
+    jmethodID   initFramebuffer;
+    jmethodID   draw;
 } AndroidScreenPriv;
 
 typedef struct _androidKeyboardPriv {
