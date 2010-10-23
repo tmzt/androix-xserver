@@ -44,7 +44,13 @@ InitInput (int argc, char **argv)
     KdKeyboardInfo *ki;
 
     KdAddKeyboardDriver(&AndroidKeyboardDriver);
+#ifdef KDRIVE_EVDEV
+    KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
+#endif
     KdAddPointerDriver(&FakePointerDriver);
+#ifdef KDRIVE_EVDEV
+    KdAddPointerDriver(&LinuxEvdevMouseDriver);
+#endif
 
     pi = KdNewPointer ();
     if (!pi)
