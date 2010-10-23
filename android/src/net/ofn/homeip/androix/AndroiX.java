@@ -29,6 +29,7 @@ public class AndroiX extends Activity
         final Intent intent = new Intent(this, AndroiXService.class);
         startService(intent);
 
+        /*
         new Thread(new Runnable() {
             @Override
             public void run()
@@ -44,7 +45,12 @@ public class AndroiX extends Activity
                 });
             }
         }, "AndroiX Setup View Thread").start();
+        */
 
+        Log.d("AndroiX", "Waiting for View in Activity");
+        try { while(AndroiXService.blitView == null) Thread.sleep(250); } catch (InterruptedException e) {};
+        Log.d("AndroiX", "Setting the View");
+        setContentView(AndroiXService.blitView); 
     }
 
     @Override
