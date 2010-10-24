@@ -11,8 +11,9 @@
 CARD32 lastEventTime = 0;
 EventList *androidEvents;
 
-void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode) {
+void androidCallbackKeyDown(void *kbdPtr, int keyCode) {
     int i, n;
+    KdKeyboardInfo *kbd = kbdPtr;
 
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: kbd->dixdev: %.8x", (unsigned int)(kbd->dixdev));
@@ -31,8 +32,9 @@ void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode) {
     //KdEnqueueKeyboardEvent (kbd, keyCode, FALSE);
 }
 
-void androidCallbackKeyUp(KdKeyboardInfo *kbd, int keyCode) {
+void androidCallbackKeyUp(void *kbdPtr, int keyCode) {
     int i, n;
+    KdKeyboardInfo *kbd = kbdPtr;
 
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd: %p keyCode: %d", kbd, keyCode);
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev: %p", kbd->dixdev);
@@ -51,9 +53,10 @@ void androidCallbackKeyUp(KdKeyboardInfo *kbd, int keyCode) {
     //KdEnqueueKeyboardEvent (kbd, keyCode, TRUE);
 }
 
-void androidCallbackTouchDown(KdPointerInfo *mouse, int x, int y) {
+void androidCallbackTouchDown(void *mousePtr, int x, int y) {
     int i, n;
     int v[3] = {x, y, 1};
+    KdPointerInfo *mouse = mousePtr;
 
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: mouse: %p x: %d y: %d", mouse, x, y);
 
@@ -67,9 +70,10 @@ void androidCallbackTouchDown(KdPointerInfo *mouse, int x, int y) {
     };
 }
 
-void androidCallbackTouchUp(KdPointerInfo *mouse, int x, int y) {
+void androidCallbackTouchUp(void *mousePtr, int x, int y) {
     int i, n;
     int v[3] = {x, y, 0};
+    KdPointerInfo *mouse = mousePtr;
 
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: mouse: %p x: %d y: %d", mouse, x, y);
 

@@ -101,8 +101,9 @@ static inline void wait_for_server_init(void) {
 #endif
 #ifdef ANDROID
 #include  <pthread.h>
-static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
-Bool hasAndroidLock = FALSE;
+#include "../android/android.h"
+//static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+//Bool hasAndroidLock = FALSE;
 #endif
 
 
@@ -166,8 +167,10 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #ifdef XANDROID
 //    pthread_mutex_lock(&miEventQueueMutex);
     LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: waiting on lock");
-    while (!(hasAndroidLock = androidRequestInputLock())) LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: waiting on lock");
-    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: hasAndroidLock: %d", hasAndroidLock);
+//    while (!(hasAndroidLock = androidRequestInputLock())) LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: waiting on lock");
+    pthread_mutex_lock(&(Android->miEventQueueMutex));
+    LogMessage(X_DEFAULT", [native] [mieq] mieqEnqueue: acquired lock");
+//    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: hasAndroidLock: %d", hasAndroidLock);
 #endif
 
     CHECKEVENT(e);
@@ -197,7 +200,8 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #endif
 #ifdef XANDROID
 //	    pthread_mutex_unlock(&miEventQueueMutex);
-        androidReleaseInputLock();
+//        androidReleaseInputLock();
+        pthread_mutex_unlock(&(Android->miEventQueueMutex));
 #endif
 	        return;
         }
@@ -218,7 +222,8 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #endif
 #ifdef XANDROID
 //	    pthread_mutex_unlock(&miEventQueueMutex);
-        androidReleaseInputLock();
+//        androidReleaseInputLock();
+        pthread_mutex_unlock(&(Android->miEventQueueMutex));
 #endif
             return;
         }

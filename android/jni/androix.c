@@ -3,10 +3,16 @@
 
 #include <sys/stat.h>
 
+static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+
 jint
 JNI_OnLoad(JavaVM *jvm, void *reserved) {
-    xandroid_jvm = jvm; // pass to kdandroid driver
-    LOG("xandroid_jvm: %.8x", xandroid_jvm);
+//    xandroid_jvm = jvm; // pass to kdandroid driver
+//    LOG("xandroid_jvm: %.8x", xandroid_jvm);
+
+    Android = (AndroidVars *)calloc(sizeof(AndroidVars), 1);
+    Android->miEventQueueMutex = &miEventQueueMutex;
+    androidInitNative(jvm);
 
     return JNI_VERSION_1_4;
 }

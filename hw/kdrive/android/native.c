@@ -1,6 +1,4 @@
-
-#include <jni.h>
-
+#if 0
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
@@ -145,4 +143,4 @@ void androidDraw(KdScreenInfo *screen, int x, int y, int w, int h) {
     (*jni_env)->CallVoidMethod(jni_env, priv->blitview, priv->draw, x, y, w, h);
     LogMessage(X_DEFAULT, "[native] androidDraw: draw finished");
 }
-
+#endif

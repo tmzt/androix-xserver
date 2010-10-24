@@ -34,7 +34,7 @@ Bool
 androidInitialize (KdCardInfo *card, AndroidPriv *priv)
 {
 
-    androidInitNative(priv);
+//    androidInitNative(priv);
 //    androidInitFramebuffer(priv, 800, 480, 16);
 
     priv->base = 0;
@@ -198,7 +198,8 @@ androidMapFramebuffer (KdScreenInfo *screen)
     }
 
     /* initFramebuffer here for now */
-    androidInitNativeFramebuffer(screen, screen->width, screen->height, screen->fb.depth);
+//    androidInitNativeFramebuffer(screen, screen->width, screen->height, screen->fb.depth);
+    androidInitNativeFramebuffer(priv->base, &(priv->buf), screen->width, screen->height, screen->fb.depth);
     
     return TRUE;
 }
