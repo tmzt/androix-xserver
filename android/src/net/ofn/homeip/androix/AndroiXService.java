@@ -77,8 +77,7 @@ public class AndroiXService extends Service {
 //      try { while(!AndroiXService.blitView.getIsCreated()) Thread.sleep(250); } catch (InterruptedException e) {};
         Log.d("AndroiX", "Now starting the X server");
 
-        AndroiXDixMain dixmain = new AndroiXDixMain();
-        Thread mainthread = new Thread(dixmain, "AndroiX DIX Thread");
+        Thread mainthread = new Thread(lib, "AndroiX DIX Thread");
         mainthread.setDaemon(true);
         mainthread.start();
 
