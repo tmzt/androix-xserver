@@ -121,6 +121,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     /* OnKeyListener */
 
     public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if (mKeyboardPtr == 0) { Log.d("AndroiX", "keyboard not ready. kbd: " + mKeyboardPtr); return false; }
         switch (event.getAction()) {
             case KeyEvent.ACTION_DOWN:
                 Log.d("AndroiX", "onKey: ACTION_DOWN keyCode: " + keyCode);
@@ -138,6 +139,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     /* OnTouchListener */
 
     public boolean onTouch(View v, MotionEvent event) {
+        if (mMousePtr == 0) { Log.d("AndroiX", "mouse not ready. mouse: " + mMousePtr); return false; }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 Log.d("AndroiX", "onTouchEvent: ACTION_DOWN x: " + event.getX() + " y: " + event.getY());

@@ -79,6 +79,8 @@ typedef struct _EventQueue {
 
 static EventQueueRec miEventQueue;
 
+
+
 #ifdef XQUARTZ
 #include  <pthread.h>
 static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -97,6 +99,11 @@ static inline void wait_for_server_init(void) {
     }
 }
 #endif
+#ifdef ANDROID
+#include  <pthread.h>
+static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 
 Bool
 mieqInit(void)
@@ -155,6 +162,9 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     wait_for_server_init();
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
+#ifdef XANDROID
+    pthread_mutex_lock(&miEventQueueMutex);
+#endif
 
     CHECKEVENT(e);
 
@@ -181,6 +191,9 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #ifdef XQUARTZ
             pthread_mutex_unlock(&miEventQueueMutex);
 #endif
+#ifdef XANDROID
+	    pthread_mutex_unlock(&miEventQueueMutex);
+#endif
 	        return;
         }
         stuck = 0;
@@ -197,6 +210,9 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
             ErrorF("[mi] Running out of memory. Tossing event.\n");
 #ifdef XQUARTZ
             pthread_mutex_unlock(&miEventQueueMutex);
+#endif
+#ifdef XANDROID
+	    pthread_mutex_unlock(&miEventQueueMutex);
 #endif
             return;
         }
@@ -218,6 +234,9 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     miEventQueue.lastMotion = isMotion;
     miEventQueue.tail = (oldtail + 1) % QUEUE_SIZE;
 #ifdef XQUARTZ
+    pthread_mutex_unlock(&miEventQueueMutex);
+#endif
+#ifdef XANDROID
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }
@@ -433,6 +452,9 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
+#ifdef XANDROID
+    pthread_mutex_lock(&miEventQueueMutex);
+#endif
     
     while (miEventQueue.head != miEventQueue.tail) {
         e = &miEventQueue.events[miEventQueue.head];
@@ -459,6 +481,9 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
+#ifdef XANDROID
+	pthread_mutex_unlock(&miEventQueueMutex);
+#endif
 
         master  = (dev && !IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
 
@@ -481,8 +506,14 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
         pthread_mutex_lock(&miEventQueueMutex);
 #endif
+#ifdef XANDROID
+	pthread_mutex_lock(&miEventQueueMutex);
+#endif
     }
 #ifdef XQUARTZ
+    pthread_mutex_unlock(&miEventQueueMutex);
+#endif
+#ifdef XANDROID
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }
