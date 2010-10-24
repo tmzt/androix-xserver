@@ -165,7 +165,9 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #endif
 #ifdef XANDROID
 //    pthread_mutex_lock(&miEventQueueMutex);
-    while (!(hasAndroidLock = androidRequestInputLock()));
+    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: waiting on lock");
+    while (!(hasAndroidLock = androidRequestInputLock())) LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: waiting on lock");
+    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: hasAndroidLock: %d", hasAndroidLock);
 #endif
 
     CHECKEVENT(e);
