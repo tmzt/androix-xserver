@@ -84,6 +84,23 @@ int androidInitNativeKeyboard(KdKeyboardInfo *kbd) {
     return res;
 }
 
+int androidInitNativeMouse(KdPointerInfo *mouse) {
+    LogMessage(X_DEFAULT, "[native] androidInitNativeMouse");
+    JNIEnv *jni_env;
+    jmethodID initNativeMouse;
+
+    LogMessage(X_DEFAULT, "[native] androidInitNativeMouse: Android: %p", Android);
+    (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL); 
+    LogMessage(X_DEFAULT, "[native] androidInitNativeMouse: jni_env: %p", jni_env);
+
+    initNativeMouse = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeMouse", "(I)I");
+
+    LogMessage(X_DEFAULT, "[native] androidInitNativeMouse: mouse: %p", mouse);
+    jint res = (*jni_env)->CallIntMethod(jni_env, Android->blitview, initNativeMouse, mouse);
+    LogMessage(X_DEFAULT, "[native] androidInitNativeMouse: res: %d", res);
+    return res;
+}
+
 int androidInitNativeFramebuffer(KdScreenInfo *screen, int width, int height, int depth)
 {
     LogMessage(X_DEFAULT, "[native] androidInitNativeFramebuffer");

@@ -32,4 +32,10 @@ int androidInitNativeKeyboard(KdKeyboardInfo *kbd);
 int androidInitNativeFramebuffer(KdScreenInfo *pScreen, int width, int height, int depth);
 void androidDraw(KdScreenInfo *screen, int x, int y, int w, int h);
 
+/* callbacks */
+void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode);
+void androidCallbackKeyUp(KdKeyboardInfo *kbd, int keyCode);
+void androidCallbackTouchDown(KdPointerInfo *mouse, int x, int y);
+void androidCallbackTouchUp(KdPointerInfo *mouse, int x, int y);
+
 #endif /* _KDANDROID_NATIVE_H_ */

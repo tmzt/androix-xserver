@@ -14,9 +14,10 @@ import java.nio.*;
 
 /* 2d version */
 
-public class AndroiXBlitView extends View implements View.OnKeyListener {
+public class AndroiXBlitView extends View implements View.OnKeyListener, View.OnTouchListener {
     private int mScreenPtr = 0;
     private int mKeyboardPtr = 0;
+    private int mMousePtr = 0;
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
     private boolean mCreated = false;
@@ -26,6 +27,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
         super(context);
 
         setOnKeyListener(this);
+        setOnTouchListener(this);
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
@@ -51,6 +53,12 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
         return 0;
     }
 
+    public int initNativeMouse(int mouse) {
+        mMousePtr = mouse;   /* only on 32bit */
+        Log.d("AndroiX", "[blitView] initNativeMouse: mouse: " + mouse);
+        return 0;
+    }
+
     public int initFramebuffer(int width, int height, int depth, java.nio.ByteBuffer buf) {
         Log.d("AndroiX", "Initialize Framebuffer: " + width + " x " + height + " depth: " + depth);
         if (depth != 16) {
@@ -63,7 +71,8 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
             @Override
             public void run() {
                 AndroiX.getActivity().setContentView(AndroiXService.blitView);
-                setOnKeyListener(AndroiXService.blitView);
+                AndroiXService.blitView.setOnKeyListener(AndroiXService.blitView);
+                AndroiXService.blitView.setOnTouchListener(AndroiXService.blitView);
                 AndroiXService.blitView.setFocusable(true);
                 AndroiXService.blitView.setFocusableInTouchMode(true);
                 AndroiXService.blitView.requestFocus();
@@ -125,5 +134,22 @@ public class AndroiXBlitView extends View implements View.OnKeyListener {
         };
         return false;
     }
+
+    /* OnTouchListener */
+
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                Log.d("AndroiX", "onTouchEvent: ACTION_DOWN x: " + event.getX() + " y: " + event.getY());
+                AndroiXService.lib.touchDown(mMousePtr, (int)(event.getX()), (int)(event.getY()));
+                return true;
+            case MotionEvent.ACTION_UP:
+                Log.d("AndroiX", "onTouchEvent: ACTION_UP x: " + event.getX() + " y: " + event.getY());
+                AndroiXService.lib.touchUp(mMousePtr, (int)(event.getX()), (int)(event.getY()));
+                return true;
+        };
+        return false;
+    }
+
 }
 

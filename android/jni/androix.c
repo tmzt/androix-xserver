@@ -86,7 +86,19 @@ Java_net_homeip_ofn_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint kb
     androidCallbackKeyUp(kbd, keyCode);
 }
 
+void
+Java_net_homeip_ofn_androix_AndroiXLib_touchDown( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
+{
+    LOG("touchDow: mouse: %p x: %d y: %d", mouse, x, y);
+    androidCallbackTouchDown(mouse, x, y);
+}
 
+void
+Java_net_homeip_ofn_androix_AndroiXLib_touchUp( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
+{
+    LOG("touchUp: mouse: %p x: %d y: %d", mouse, x, y);
+    androidCallbackKeyUp(mouse, x, y);
+}
 
 
 

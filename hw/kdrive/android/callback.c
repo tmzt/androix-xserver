@@ -20,7 +20,7 @@ void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode) {
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: kbd->dixdev->key: %.8x", (unsigned int)(kbd->dixdev->key));
 
     GetEventList(&androidEvents);
-    lastEventTime = GetTimeInMillis();
+    //lastEventTime = GetTimeInMillis();
     n = GetKeyboardEvents(androidEvents, kbd->dixdev, KeyPress, keyCode);
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: n: %d", n);
     for (i = 0; i < n; i++)
@@ -32,13 +32,13 @@ void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode) {
 void androidCallbackKeyUp(KdKeyboardInfo *kbd, int keyCode) {
     int i, n;
 
-    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
-    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev: %.8x", (unsigned int)(kbd->dixdev));
-    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev->kbdfeed: %.8x", (unsigned int)(kbd->dixdev->kbdfeed));
-    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev->key: %.8x", (unsigned int)(kbd->dixdev->key));
+    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd: %p keyCode: %d", kbd, keyCode);
+    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev: %p", kbd->dixdev);
+    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev->kbdfeed: %p", kbd->dixdev->kbdfeed);
+    LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: kbd->dixdev->key: %p", kbd->dixdev->key);
 
     GetEventList(&androidEvents);
-    lastEventTime = GetTimeInMillis();
+    //lastEventTime = GetTimeInMillis();
     n = GetKeyboardEvents(androidEvents, kbd->dixdev, KeyRelease, keyCode);
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: n: %d", n);
     for (i = 0; i < n; i++)
@@ -47,4 +47,27 @@ void androidCallbackKeyUp(KdKeyboardInfo *kbd, int keyCode) {
     //KdEnqueueKeyboardEvent (kbd, keyCode, TRUE);
 }
 
+void androidCallbackTouchDown(KdPointerInfo *mouse, int x, int y) {
+    int i, n;
+    int v[3] = {x, y, 1};
+
+    LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: mouse: %p x: %d y: %d", mouse, x, y);
+
+    GetEventList(&androidEvents);
+    n = GetPointerEvents(androidEvents, mouse->dixdev, MotionNotify, 1, POINTER_ABSOLUTE, 0, 1, v);
+    for (i = 0; i < n; i++)
+        mieqEnqueue(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event);
+}
+
+void androidCallbackTouchUp(KdPointerInfo *mouse, int x, int y) {
+    int i, n;
+    int v[3] = {x, y, 0};
+
+    LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: mouse: %p x: %d y: %d", mouse, x, y);
+
+    GetEventList(&androidEvents);
+    n = GetPointerEvents(androidEvents, mouse->dixdev, MotionNotify, 1, POINTER_ABSOLUTE, 0, 1, v);
+    for (i = 0; i < n; i++)
+        mieqEnqueue(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event);
+}
 

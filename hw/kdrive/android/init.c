@@ -47,16 +47,17 @@ InitInput (int argc, char **argv)
 #ifdef KDRIVE_EVDEV
     KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
 #endif
-    KdAddPointerDriver(&FakePointerDriver);
+    KdAddPointerDriver(&AndroidMouseDriver);
 #ifdef KDRIVE_EVDEV
     KdAddPointerDriver(&LinuxEvdevMouseDriver);
 #endif
 
     pi = KdNewPointer ();
-    LogMessage(X_DEFAULT, "[native] InitInput: pointer ki: %p", ki);
+    LogMessage(X_DEFAULT, "[native] InitInput: pointer pi: %p", pi);
     if (!pi)
         return;
-    pi->driver = &FakePointerDriver;
+    pi->driver = &AndroidMouseDriver;
+    pi->name = strdup("Android Mouse Driver");
     KdAddPointer(pi);
 
     ki = KdNewKeyboard ();

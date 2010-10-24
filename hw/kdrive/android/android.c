@@ -28,7 +28,7 @@
 extern int KdTsPhyScreen;
 
 KdKeyboardInfo *androidKbd;
-//KdPointerInfo *androidMouse;
+KdPointerInfo *androidMouse;
 
 Bool
 androidInitialize (KdCardInfo *card, AndroidPriv *priv)
@@ -627,6 +627,58 @@ androidUnsetInternalDamage (ScreenPtr pScreen)
 				androidInternalDamageWakeupHandler,
 				(pointer) pScreen);
 }
+
+/* AndroidMouse */
+static Status
+AndroidMouseInit (KdPointerInfo *pi)
+{
+  int res;
+
+  pi->driverPrivate = (AndroidPointerPriv *)
+                         calloc(sizeof(AndroidPointerPriv), 1);
+  ((AndroidPointerPriv *)pi->driverPrivate)->enabled = FALSE;
+  pi->nAxes = 3;
+  pi->nButtons = 32;
+  free(pi->name);
+  pi->name = strdup("Xephyr virtual AndroidMouse");
+  androidMouse = pi;
+
+  res = androidInitNativeMouse(pi);
+  LogMessage(X_DEFAULT, "[native] AndroidMouseInit: res: %d", res);
+  if (res) return res;
+
+  return Success;
+}
+
+static Status
+AndroidMouseEnable (KdPointerInfo *pi)
+{
+    ((AndroidPointerPriv *)pi->driverPrivate)->enabled = TRUE;
+    return Success;
+}
+
+static void
+AndroidMouseDisable (KdPointerInfo *pi)
+{
+    ((AndroidPointerPriv *)pi->driverPrivate)->enabled = FALSE;
+    return;
+}
+
+static void
+AndroidMouseFini (KdPointerInfo *pi)
+{
+    androidMouse = NULL; 
+    return;
+}
+
+KdPointerDriver AndroidMouseDriver = {
+    "android",
+    AndroidMouseInit,
+    AndroidMouseEnable,
+    AndroidMouseDisable,
+    AndroidMouseFini,
+    NULL,
+};
 
 /* Keyboard */
 
