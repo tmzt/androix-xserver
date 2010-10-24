@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2009 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+
 //include <string.h>
 #include <jni.h>
 
@@ -24,6 +9,16 @@
 #define LOG_TAG "AndroiX"
 //define LOG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+
+typedef struct _androidVars {
+    JavaVM *jvm;
+
+    /* Global references established in androidInitNative */
+    jclass AndroiXService_class;
+    jclass AndroiXBlitView_class;
+    jobject blitview;
+    
+} AndroidVars;
 
 /*
 jstring
@@ -36,6 +31,7 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 
 JavaVM *xandroid_jvm;
 JNIEnv *xandroid_jni_env;
+extern AndroidVars *Android;
 
 jint
 JNI_OnLoad(JavaVM *jvm, void *reserved) {
@@ -76,28 +72,36 @@ void
 Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
 {
     LOG("keyDown: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
+    requestInputLock(Android);
     androidCallbackKeyDown(kbd, keyCode);
+    releaseInputLock(Android);
 }
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
 {
     LOG("keyUp: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
+    requestInputLock(Android);
     androidCallbackKeyUp(kbd, keyCode);
+    releaseInputLock(Android);
 }
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_touchDown( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
 {
     LOG("touchDown: mouse: %p x: %d y: %d", mouse, x, y);
+    requestInputLock(Android);
     androidCallbackTouchDown(mouse, x, y);
+    releaseInputLock(Android);
 }
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_touchUp( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
 {
     LOG("touchUp: mouse: %p x: %d y: %d", mouse, x, y);
+    requestInputLock(Android);
     androidCallbackKeyUp(mouse, x, y);
+    releaseInputLock(Android);
 }
 
 

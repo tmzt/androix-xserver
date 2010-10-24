@@ -22,7 +22,7 @@ include $(CLEAR_VARS)
 #LOCAL_STATIC_LIBRARIES := libfakedix
 
 LOCAL_MODULE	:= androix
-LOCAL_SRC_FILES := androix.c
+LOCAL_SRC_FILES := androix.c locking.c
 LOCAL_LDFLAGS := -L/opt/androix/usr/lib -lz -llog -lXdmcp -lpixman-1 -lXfont -lXau -lfontenc -lfreetype
 
 #LOCAL_STATIC_LIBRARIES := libxfakelib

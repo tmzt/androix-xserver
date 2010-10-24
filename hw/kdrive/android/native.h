@@ -24,7 +24,7 @@ typedef struct _androidNativeKeyboard {
     /* expand */
 } AndroidNativeKeyboard;
 
-//extern Android *xdandroid_Android;
+AndroidVars *Android;
 
 int androidInitNative(AndroidPriv *priv);
 void androidInitNativeScreen(KdScreenInfo *pScreen);

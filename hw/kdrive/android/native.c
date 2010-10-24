@@ -9,8 +9,6 @@
 extern JavaVM *xandroid_jvm;
 extern JNIEnv *xandroid_jni_env;
 
-static AndroidVars *Android;
-
 int androidInitNative(AndroidPriv *priv)
 {
     JNIEnv *jni_env;
