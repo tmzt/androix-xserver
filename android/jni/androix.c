@@ -1,37 +1,7 @@
 
-//include <string.h>
-#include <jni.h>
+#include <android.h>
 
 #include <sys/stat.h>
-
-#include "android/log.h"
-
-#define LOG_TAG "AndroiX"
-//define LOG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-
-typedef struct _androidVars {
-    JavaVM *jvm;
-
-    /* Global references established in androidInitNative */
-    jclass AndroiXService_class;
-    jclass AndroiXBlitView_class;
-    jobject blitview;
-    
-} AndroidVars;
-
-/*
-jstring
-Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
-                                                  jobject thiz )
-{
-    return (*env)->NewStringUTF(env, "Hello from JNI !");
-}
-*/
-
-JavaVM *xandroid_jvm;
-JNIEnv *xandroid_jni_env;
-extern AndroidVars *Android;
 
 jint
 JNI_OnLoad(JavaVM *jvm, void *reserved) {
@@ -51,7 +21,7 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     char *envp[] = {};
 
     xandroid_jni_env = env; // pass to kdandroid driver
-    LOG("xandroid_jni_env: %.8x", xandroid_jni_env);
+    LOG("xandroid_jni_env: %p", xandroid_jni_env);
 
     LOG("fixing up /data/data/net.homeip.ofn.androix/usr/bin/xkbcomp");
 
@@ -61,7 +31,7 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
 
     stat("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp", &stats);
 
-    LOG("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp mode: " + stats.st_mode);
+    LOG("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp mode: %o" + stats.st_mode);
 
     LOG("starting DIX");
 	dix_main(1, argv, envp);
@@ -71,41 +41,36 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
 void
 Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
 {
-    LOG("keyDown: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
-    requestInputLock(Android);
-    androidCallbackKeyDown(kbd, keyCode);
-    releaseInputLock(Android);
+    LOG("keyDown: kbd: %p keyCode: %d", kbd, keyCode);
+    androidRequestInputLock();
+    androidCallbackKeyDown((void *)kbd, keyCode);
+    androidReleaseInputLock();
 }
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
 {
-    LOG("keyUp: kbd: %.8x keyCode: %d", (unsigned int)kbd, keyCode);
-    requestInputLock(Android);
-    androidCallbackKeyUp(kbd, keyCode);
-    releaseInputLock(Android);
+    LOG("keyUp: kbd: %p keyCode: %d", (unsigned int)kbd, keyCode);
+    androidRequestInputLock();
+    androidCallbackKeyUp((void *)kbd, keyCode);
+    androidReleaseInputLock();
 }
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_touchDown( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
 {
     LOG("touchDown: mouse: %p x: %d y: %d", mouse, x, y);
-    requestInputLock(Android);
-    androidCallbackTouchDown(mouse, x, y);
-    releaseInputLock(Android);
+    androidRequestInputLock();
+    androidCallbackTouchDown((void *)mouse, x, y);
+    androidReleaseInputLock();
 }
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_touchUp( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
 {
     LOG("touchUp: mouse: %p x: %d y: %d", mouse, x, y);
-    requestInputLock(Android);
-    androidCallbackKeyUp(mouse, x, y);
-    releaseInputLock(Android);
+    androidRequestInputLock();
+    androidCallbackTouchUp((void *)mouse, x, y);
+    androidReleaseInputLock();
 }
-
-
-
-
-
 
