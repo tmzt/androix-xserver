@@ -29,12 +29,13 @@ AndroidVars *Android;
 int androidInitNative(AndroidPriv *priv);
 void androidInitNativeScreen(KdScreenInfo *pScreen);
 int androidInitNativeKeyboard(KdKeyboardInfo *kbd);
+int androidInitNativeMouse(KdPointerInfo *mouse);
 int androidInitNativeFramebuffer(KdScreenInfo *pScreen, int width, int height, int depth);
 void androidDraw(KdScreenInfo *screen, int x, int y, int w, int h);
 
 /* defined in android component */
-bool androidRequestInputLock(AndroidVars *Android)
-void androidReleaseInputLock(AndroidVars *Android)
+int androidRequestInputLock(void);
+int androidReleaseInputLock(void);
 
 /* callbacks */
 void androidCallbackKeyDown(KdKeyboardInfo *kbd, int keyCode);
