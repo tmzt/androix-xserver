@@ -199,6 +199,7 @@ androidMapFramebuffer (KdScreenInfo *screen)
 
     /* initFramebuffer here for now */
 //    androidInitNativeFramebuffer(screen, screen->width, screen->height, screen->fb.depth);
+    LogMessage(X_DEFAULT, "[android] androidMapFramebuffer: initFramebuffer base: %p buf: %p width: %d height: %d depth: %d", priv->base, priv->buf, screen->width, screen->height, screen->fb.depth);
     androidInitNativeFramebuffer(priv->base, &(priv->buf), screen->width, screen->height, screen->fb.depth);
     
     return TRUE;
