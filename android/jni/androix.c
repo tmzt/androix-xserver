@@ -9,7 +9,7 @@ JNI_OnLoad(JavaVM *jvm, void *reserved) {
     LOG("xandroid_jvm: %.8x", xandroid_jvm);
 
     Android = (AndroidVars *)calloc(sizeof(AndroidVars), 1);
-//    androidInitNative(jvm);
+    androidInitNative(jvm);
 
     return JNI_VERSION_1_4;
 }
