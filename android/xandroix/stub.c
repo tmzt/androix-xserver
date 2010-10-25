@@ -25,6 +25,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <unistd.h>
 #include <stdio.h>
 
+int androidRequestInputLock() {
+    LOG("[stub] androidRequestInputLock");
+    return 1;
+};
+
+int androidReleaseInputLock() {
+    LOG("[stub] androidReleaseInputLock");
+    return 1;
+};
+
 void androidInitNative(JavaVM *jvm) {
     LOG("[stub] androidInitNative");
 };
