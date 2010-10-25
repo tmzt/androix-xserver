@@ -25,7 +25,8 @@ void androidCallbackKeyDown(void *kbdPtr, int keyCode) {
     n = GetKeyboardEvents(androidEvents, kbd->dixdev, KeyPress, keyCode);
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: n: %d", n);
     for (i = 0; i < n; i++) {
-        mieqEnqueue(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event);
+//        mieqEnqueue(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event);
+        mieqProcessDeviceEvent(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: enqueueing event KeyPress %d", keyCode);
     };
 
@@ -46,7 +47,8 @@ void androidCallbackKeyUp(void *kbdPtr, int keyCode) {
     n = GetKeyboardEvents(androidEvents, kbd->dixdev, KeyRelease, keyCode);
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: n: %d", n);
     for (i = 0; i < n; i++) {
-        mieqEnqueue(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event);
+//        mieqEnqueue(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event);
+        mieqProcessDeviceEvent(kbd->dixdev, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: enqueueing event KeyRelease %d", keyCode);
     };
 
@@ -65,7 +67,8 @@ void androidCallbackTouchDown(void *mousePtr, int x, int y) {
     LogMessage(X_DEFAULT, "[native] andriodCallbackTouchDown mouse->dixdev->enabled: %d", mouse->dixdev->enabled);
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: n: %d", n);
     for (i = 0; i < n; i++) {
-        mieqEnqueue(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event);
+//        mieqEnqueue(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event);
+        mieqProcessDeviceEvent(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: enqueueing event MotionNotify %d %d %d", x, y, 1);
     };
 }
@@ -82,7 +85,8 @@ void androidCallbackTouchUp(void *mousePtr, int x, int y) {
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp mouse->dixdev->enable: %d", mouse->dixdev->enabled);
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: n: %d", n);
     for (i = 0; i < n; i++) {
-        mieqEnqueue(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event);
+//        mieqEnqueue(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event);
+        mieqProcessDeviceEvent(mouse->dixdev, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: enqueueing event MotionNotify %d %d %d", x, y, 0);
     };
 }

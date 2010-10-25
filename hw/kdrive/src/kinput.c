@@ -222,6 +222,7 @@ KdRegisterFd (int fd, void (*read) (int fd, void *closure), void *closure)
     kdInputFds[kdNumInputFds].disable = 0;
     kdInputFds[kdNumInputFds].closure = closure;
     kdNumInputFds++;
+    LogMessage(X_DEFAULT, "[kinput] KdRegisterFd kdInputEnabled: %d", kdInputEnabled);
     if (kdInputEnabled)
 	KdAddFd (fd);
     return TRUE;

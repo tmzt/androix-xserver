@@ -34,6 +34,13 @@
  /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/asm-generic/signal.h \
  /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/sched.h \
  /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/android/log.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/stdio.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/sys/socket.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/socket.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/asm/socket.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/asm/sockios.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/sockios.h \
+ /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/uio.h \
  /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/sys/stat.h \
  /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/stat.h \
  /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/endian.h \
@@ -106,6 +113,20 @@
 /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/sched.h:
 
 /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/android/log.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/stdio.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/sys/socket.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/socket.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/asm/socket.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/asm/sockios.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/sockios.h:
+
+/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/linux/uio.h:
 
 /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include/sys/stat.h:
 

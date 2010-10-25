@@ -25,9 +25,33 @@
 #endif
 #include "kdandroid.h"
 
+#include <fcntl.h>
+
+static void
+AndroidWakeupFDRead(int wakeupFD, void *closure) {
+    LogMessage(X_DEFAULT, "[os] AndroidWakeupFDRead");
+    return;
+}
+
+static void
+AndroidTestFDRead(int testFD, void *closure) {
+    LogMessage(X_DEFAULT, "[os] AndroidTESTFDRead");
+    return;
+}
+
 static int
 AndroidInit (void)
 {
+    int testFD;
+    testFD = open("/data/data/net.homeip.ofn.androix/test", O_RDONLY);
+    LogMessage(X_DEFAULT, "adding testFD: %d", testFD);
+//    KdRegisterFd(testFD, AndroidTestFDRead, NULL);
+    AddEnabledDevice(testFD);
+
+    LogMessage(X_DEFAULT, "adding wakeupFD: %d", Android->wakeupFD[0]);
+    //KdAddFd(Android->wakeupFD[0]);
+//    KdRegisterFd(Android->wakeupFD[0], AndroidWakeupFDRead, NULL);
+    AddEnabledDevice(Android->wakeupFD[0]);
     return 1;
 }
 

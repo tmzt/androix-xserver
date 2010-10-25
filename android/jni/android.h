@@ -12,6 +12,9 @@ typedef struct _androidVars {
     pthread_mutex_t *miEventQueueMutex;
     JavaVM *jvm;
 
+    /* Event wakeup socket */
+    int wakeupFD[2];
+
     /* Global references established in androidInitNative */
     jclass AndroiXService_class;
     jclass AndroiXBlitView_class;
