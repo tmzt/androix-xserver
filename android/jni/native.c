@@ -47,6 +47,10 @@ void androidInitNative(JavaVM *jvm) {
     Android->initNativeMouse = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeMouse", "(I)I");
     Android->initFramebuffer = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initFramebuffer", "(IIILjava/nio/ByteBuffer;)I");
     Android->draw = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "draw", "(IIII)V");
+
+    (*jni_env)->DeleteLocalRef(jni_env, AndroiXService_class);
+    (*jni_env)->DeleteLocalRef(jni_env, AndroiXBlitView_class);
+    (*jni_env)->DeleteLocalRef(jni_env, blitview);
 };
 
 void androidInitNativeScreen(void *screen) {

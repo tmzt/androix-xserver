@@ -8,6 +8,9 @@ JNI_OnLoad(JavaVM *jvm, void *reserved) {
     xandroid_jvm = jvm; // pass to kdandroid driver
     LOG("xandroid_jvm: %.8x", xandroid_jvm);
 
+    Android = (AndroidVars *)calloc(sizeof(AndroidVars), 1);
+//    androidInitNative(jvm);
+
     return JNI_VERSION_1_4;
 }
 
