@@ -101,7 +101,7 @@ static inline void wait_for_server_init(void) {
 #endif
 #ifdef ANDROID
 #include  <pthread.h>
-#include "../android/jni/android.h"
+#include "../hw/android/android.h"
 //static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 //Bool hasAndroidLock = FALSE;
 #endif

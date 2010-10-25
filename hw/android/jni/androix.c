@@ -1,5 +1,5 @@
 
-#include <android.h>
+#include "../android.h"
 
 #include <stdio.h>
 #include <sys/socket.h>

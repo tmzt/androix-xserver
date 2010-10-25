@@ -39,6 +39,9 @@
 /* Build library component of the AndroiX X server for Android */
 #undef XANDROID
 
+/* Build the Android DDX */
+#undef DDXANDROID
+
 /* Use OsVendorVErrorF */
 #undef DDXOSVERRORF
 

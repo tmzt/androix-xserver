@@ -20,7 +20,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-#include "android.h"
+#include "../android.h"
 
 
 void androidInitNative(JavaVM *jvm) {

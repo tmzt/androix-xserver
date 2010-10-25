@@ -1,5 +1,5 @@
 
-#include "android.h"
+#include "../android.h"
 
 #include <unistd.h>
 

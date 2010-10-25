@@ -117,7 +117,7 @@ Equipment Corporation.
 
 extern void Dispatch(void);
 
-#if defined(XQUARTZ)||defined(XFAKELIB)||defined(XANDROID)
+#if defined(XQUARTZ)||defined(XFAKELIB)||defined(XANDROID)||defined(DDXANDROID)
 #include <pthread.h>
 
 BOOL serverInitComplete = FALSE;
