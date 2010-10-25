@@ -34,11 +34,18 @@ void androidInitNative(JavaVM *jvm) {
     
     (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);                    
     AndroiXService_class = (*jni_env)->FindClass(jni_env, "net/homeip/ofn/androix/AndroiXService");
+    LOG("[native] init: local AndroiXService_class: %p", AndroiXService_class);
+
+    blitview_id = (*jni_env)->GetStaticFieldID(jni_env, AndroiXService_class, "blitView", "Lnet/homeip/ofn/androix/AndroiXBlitView;");
     blitview = (*jni_env)->GetStaticObjectField(jni_env, AndroiXService_class, blitview_id);
+    LOG("[native] init: local blitview: %p", blitview);
+
     AndroiXBlitView_class = (*jni_env)->GetObjectClass(jni_env, blitview);
+    LOG("[native] init: local AndroiXBlitView_class: %p", AndroiXBlitView_class);
 
     /* setup global references and cache methodIDs */
     Android->AndroiXService_class = (*jni_env)->NewGlobalRef(jni_env, AndroiXService_class);
+
     Android->AndroiXBlitView_class = (*jni_env)->NewGlobalRef(jni_env, AndroiXBlitView_class);
     Android->blitview = (*jni_env)->NewGlobalRef(jni_env, blitview);
 
@@ -47,6 +54,10 @@ void androidInitNative(JavaVM *jvm) {
     Android->initNativeMouse = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeMouse", "(I)I");
     Android->initFramebuffer = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initFramebuffer", "(IIILjava/nio/ByteBuffer;)I");
     Android->draw = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "draw", "(IIII)V");
+
+    (*jni_env)->DeleteLocalRef(jni_env, AndroiXService_class);
+    (*jni_env)->DeleteLocalRef(jni_env, AndroiXBlitView_class);
+    (*jni_env)->DeleteLocalRef(jni_env, blitview);
 };
 
 void androidInitNativeScreen(void *screen) {
