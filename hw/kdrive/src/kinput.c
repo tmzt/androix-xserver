@@ -2177,6 +2177,7 @@ miPointerScreenFuncRec kdPointerScreenFuncs =
 void
 ProcessInputEvents (void)
 {
+    LogMessage(X_DEFAULT, "[kinput] ProcessInputEvents");
     mieqProcessInputEvents();
     miPointerUpdateSprite(inputInfo.pointer);
     if (kdSwitchPending)
