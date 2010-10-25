@@ -657,6 +657,7 @@ AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdriv
 AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
 AC_ARG_ENABLE(xfakelib,		AS_HELP_STRING([--enable-xfakelib], [Build the kdrive-based fakelib (default: auto)]), [XFAKELIB=$enableval], [XFAKELIB=auto])
 AC_ARG_ENABLE(xandroid,		AS_HELP_STRING([--enable-xandroid], [Build the library component of the AndroiX X server for Android(default: auto)]), [XANDROID=$enableval], [XANDROID=auto])
+AC_ARG_ENABLE(android,		AS_HELP_STRING([--enable-android], [Build the Android DDX])
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 dnl kdrive options
 AC_ARG_ENABLE(kdrive-kbd,     AS_HELP_STRING([--enable-kdrive-kbd], [Build kbd driver for kdrive (default: auto)]), [KDRIVE_KBD=$enableval], [KDRIVE_KBD=auto])
@@ -2047,6 +2048,11 @@ if test "$KDRIVE" = yes; then
 	AC_DEFINE(XANDROID, 1, [Build the library component of the AndroiX X server for Android])
     fi
 
+    if test "x$ANDROID" = xyes; then
+	DDXANDROID=yes
+	AC_DEFINE(ANDROID, 1, [Build the Android DDX])
+    fi
+
     PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
     if test "x$HAVE_TSLIB" = xno; then
         AC_CHECK_LIB(ts, ts_open, [
@@ -2284,6 +2290,7 @@ hw/xquartz/doc/Makefile
 hw/xquartz/mach-startup/Makefile
 hw/xquartz/pbproxy/Makefile
 hw/xquartz/xpr/Makefile
+hw/android/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ephyr/Makefile
 hw/kdrive/fake/Makefile
