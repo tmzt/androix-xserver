@@ -527,7 +527,8 @@ androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
   */
   shadowUpdateRotatePacked(pScreen, pBuf);
   //hostx_paint_rect(screen, 0,0,0,0, screen->width, screen->height);
-  androidDraw(screen, 0, 0, /*?*/ screen->width, screen->height);
+  //androidDraw(screen,0, 0, /*?*/ screen->width, screen->height);
+  androidDraw(0, 0, /*?*/ screen->width, screen->height);
 }
 
 static void
@@ -560,10 +561,10 @@ androidInternalDamageRedisplay (ScreenPtr pScreen)
                            pbox->x2 - pbox->x1,
                            pbox->y2 - pbox->y1);
 */
-          androidDraw(screen, pbox->x1, pbox->y1,
-                           /* ? */
-                           pbox->x2 - pbox->x1,
-                           pbox->y2 - pbox->y1);
+          androidDraw(pbox->x1, pbox->y1,
+                      /* ? */
+                      pbox->x2 - pbox->x1,
+                      pbox->y2 - pbox->y1);
           pbox++;
         }
       DamageEmpty (scrpriv->pDamage);

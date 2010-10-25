@@ -85,9 +85,9 @@ int androidInitNativeFramebuffer(void *base, void **bufPtr, int width, int heigh
     (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
 
     int bpp = depth/8;
-    LOG("[native] androidInitNativeFramebuffer: base: %p width: %d height: %d bpp: %d", width, height, bpp);
+    LOG("[native] androidInitNativeFramebuffer: base: %p buf: %p width: %d height: %d bpp: %d", base, buf, width, height, bpp);
 
-    *buf = (*jni_env)->NewDirectByteBuffer(jni_env, base, (width*height*bpp));
+    buf = (*jni_env)->NewDirectByteBuffer(jni_env, base, (width*height*bpp));
 
     jint res = (*jni_env)->CallIntMethod(jni_env, Android->blitview, Android->initFramebuffer, width, height, depth, buf);
     return res;
@@ -96,6 +96,7 @@ int androidInitNativeFramebuffer(void *base, void **bufPtr, int width, int heigh
 void androidDraw(int x, int y, int w, int h) {
     JNIEnv *jni_env;
     jmethodID initNativeMouse;
+    LOG("[native] androidDraw: %d,%d %d x %d", x, y, w, h);
     (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
     (*jni_env)->CallVoidMethod(jni_env, Android->blitview, Android->draw, x, y, w, h);
 };
