@@ -126,7 +126,9 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     pScreen->x = 0;
     pScreen->y = 0;
 
-    fbCreateDefColormap(pScreen);
+/* moved   fbCreateDefColormap(pScreen); */
+
+    AndroidFinishScreenInit(index, pScreen, argc, argv);
 
     LogMessage(X_INFO, "[startup] initNativeScreen: pScreen: %p", pScreen);
     androidInitNativeScreen(pScreen);
@@ -136,9 +138,11 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     return TRUE;
 }
 
-static Bool AndroidFinishScreenInitFB (int index, ScreenPtr pScreen, int argc, char **argv) {
-    AndroidScreenPriv *priv = dixLookupPrivate(pScreen->devPrivates, androidScreenKey);
+Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **argv) {
+    AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
     char *pbits = NULL;
+
+    /* allocate */
 
 /*
   if (!fbSetupScreen (pScreen,
@@ -178,6 +182,19 @@ static Bool AndroidFinishScreenInitFB (int index, ScreenPtr pScreen, int argc, c
         return FALSE;
     }
 
+    if (!AndroidInitVisuals(pScreen)) {
+        LogMessage(X_ERROR, "[screen] AndroidFinishScreenInitFB: AndroidInitVisuals failed");
+        return FALSE;
+    }
+
+
+    pbits = priv->base;
+    miSetPixmapDepths();
+
+    pScreen->SaveScreen = AndroidSaveScreen;
+
+    fbCreateDefColormap(pScreen);
+
 /*
   if (!fbFinishScreenInit (pScreen,
 			   pScreenInfo->pfb,
@@ -191,26 +208,16 @@ static Bool AndroidFinishScreenInitFB (int index, ScreenPtr pScreen, int argc, c
     }
 */
 
-    if (!AndroidInitVisuals(pScreen)) {
-        LogMessage(X_ERROR, "[screen] AndroidFinishScreenInitFB: AndroidInitVisuals failed");
-        return FALSE;
-    }
-
-    pbits = priv->base;
-    miSetPixmapDepths();
-
-    if (!fbSetupScreen(pScreen,
+    if (!fbFinishScreenInit(pScreen,
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
                 dpi, dpi,                         // dots per inch
                 priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
-        LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbScreenInit failed");
+        LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbFinishScreenInit failed");
         return FALSE;
     }
-
-    pScreen->SaveScreen = AndroidSaveScreen;
     
 //    pScreen->BlockHandler = androidBlockHandler;
 //    pScreen->WakeupHandler = androidWakeupHandler;
@@ -231,7 +238,7 @@ static Bool AndroidFinishScreenInitFB (int index, ScreenPtr pScreen, int argc, c
 
     
 
-
+    return TRUE;
 
 }
 
@@ -258,7 +265,7 @@ static Bool AndroidInitVisuals (ScreenPtr pScreen) {
 */
 
       if (!miSetVisualTypesAndMasks (priv->depth,
-				     TrueColorMask,
+				     TrueColorMask,         
 				     8,
 				     -1,
 				     priv->redMask,
@@ -269,6 +276,7 @@ static Bool AndroidInitVisuals (ScreenPtr pScreen) {
         return FALSE;
 	}
 
+    return TRUE;
 }
 
 
