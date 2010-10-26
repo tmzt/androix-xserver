@@ -5,6 +5,8 @@
 extern DevPrivateKeyRec androidScreenKeyRec;
 #define androidScreenKey (&androidScreenKeyRec)
 
+static miPointerScreenFuncRec androidPointerCursorFuncs;
+
 Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv);
 Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **argv);
 static Bool AndroidInitVisuals (ScreenPtr pScreen);

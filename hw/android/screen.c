@@ -249,7 +249,7 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
     /* is this used?? */
     miInitializeBackingStore (pScreen);
 
-    /* miDCInitialize ? */
+    miDCInitialize(pScreen, &androidPointerCursorFuncs);
 
     if (!shadowSetup(pScreen))
 	{
@@ -300,4 +300,21 @@ static Bool AndroidInitVisuals (ScreenPtr pScreen) {
 
     return TRUE;
 }
+
+static Bool androidCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
+{
+    return FALSE;
+}
+
+static void androidCrossScreen(ScreenPtr pScreen, Bool entering)
+{
+}
+
+static miPointerScreenFuncRec androidPointerCursorFuncs =
+{
+    androidCursorOffScreen,
+    androidCrossScreen,
+    miPointerWarpCursor
+};
+
 
