@@ -56,8 +56,8 @@ void wakeupFD() {
    	char nullbyte=0;
 	//  <daniels> oh, i ... er ... christ.
     LOG("writing to wakeupFD");
-//	res = write(Android->wakeupFD[1], &nullbyte, sizeof(nullbyte));
-    write(Android->wakeupFD[1], "X", 1);
+	res = write(Android->wakeupFD[1], &nullbyte, sizeof(nullbyte));
+//  res = write(Android->wakeupFD[1], "X", 1);
     LOG("wrote %d bytes", res);
 }
 

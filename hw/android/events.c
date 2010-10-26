@@ -67,11 +67,15 @@ void ProcessInputEvents(void) {
     
 //    TA_SERVER();
 
+    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
     mieqProcessInputEvents();
+    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
+
 
     // Empty the signaling pipe
     while (x == sizeof(nullbyte)) {
       x = read(Android->wakeupFD[0], &nullbyte, sizeof(nullbyte));
+      LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
     }
 }
 
