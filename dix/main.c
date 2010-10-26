@@ -208,11 +208,18 @@ int main(int argc, char *argv[], char *envp[])
 	    FatalError("no screens found");
 	InitExtensions(argc, argv);
 
+	LogMessage(X_INFO, "[main] screenInfo.numScreens: %d", screenInfo.numScreens);
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
+    	LogMessage(X_INFO, "[main] getting pScreen");
 	    ScreenPtr pScreen = screenInfo.screens[i];
+    	LogMessage(X_INFO, "[main] pScreen %p", pScreen);
+
+    	LogMessage(X_INFO, "[main] createScratchPixmapsForScreen %d", i);
 	    if (!CreateScratchPixmapsForScreen(i))
 		FatalError("failed to create scratch pixmaps");
+    	LogMessage(X_INFO, "[main] createScreenResources: %p (%p)", pScreen->CreateScreenResources, pScreen);
+
 	    if (pScreen->CreateScreenResources &&
 		!(*pScreen->CreateScreenResources)(pScreen))
 		FatalError("failed to create screen resources");
@@ -220,8 +227,11 @@ int main(int argc, char *argv[], char *envp[])
 		FatalError("failed to create scratch GCs");
 	    if (!CreateDefaultStipple(i))
 		FatalError("failed to create default stipple");
+        LogMessage(X_INFO, "[main] creating root window on screen %p", pScreen);
 	    if (!CreateRootWindow(pScreen))
 		FatalError("failed to create root window");
+        LogMessage(X_INFO, "[main] created root window on screen %p: %p", pScreen, pScreen->root);
+        LogMessage(X_INFO, "[main] root window drawable: height: %d width: %d", pScreen->root->drawable.height, pScreen->root->drawable.width);
 	}
 
 	InitFonts();
@@ -252,10 +262,15 @@ int main(int argc, char *argv[], char *envp[])
 	    PanoramiXConsolidate();
 #endif
 
+	LogMessage(X_INFO, "[main] [input] screenInfo.numScreens: %d", screenInfo.numScreens);
 	for (i = 0; i < screenInfo.numScreens; i++)
+    {
+    	LogMessage(X_INFO, "[main] InitRootWindow screens[%d]: %p root: %p", i, screenInfo.screens[i], screenInfo.screens[i]->root);
 	    InitRootWindow(screenInfo.screens[i]->root);
+    }
 
-        InitCoreDevices();
+    InitCoreDevices();
+	LogMessage(X_INFO, "[main] calling InitInput");
 	InitInput(argc, argv);
 	InitAndStartDevices();
 

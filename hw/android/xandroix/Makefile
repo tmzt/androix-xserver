@@ -4,7 +4,7 @@ PLATFORM=/opt/androix
 CC=/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin/arm-eabi-gcc     
 NM=/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin/arm-eabi-nm      
 PKG_CONFIG_PATH=/opt/androix/usr/lib/pkgconfig    
-CFLAGS = -W -Wall  -O   -Wstrict-prototypes -pipe -std=gnu99 -ffunction-sections -fno-short-enums -march=armv5te -mtune=xscale -msoft-float -fomit-frame-pointer  -Wno-pointer-sign -Wno-override-init -I/opt/androix/include -I/opt/androix/usr/include -nostdlib 
+CFLAGS = -W -Wall  -O0 -g3   -Wstrict-prototypes -pipe -std=gnu99 -ffunction-sections -fno-short-enums -march=armv5te -mtune=xscale -msoft-float -fomit-frame-pointer  -Wno-pointer-sign -Wno-override-init -I/opt/androix/include -I/opt/androix/usr/include -nostdlib 
 CFLAGS += -fPIC -DANDROID -I/opt/androix/usr/include -Dbionic -Dlinux -D__arm__
 LDFLAGS=-Wl,-T,/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/prebuilt/linux-x86/arm-eabi-4.4.0/arm-eabi/lib/ldscripts/armelf.x -Wl,-rpath-link=/opt/androix/usr/lib -L/opt/androix/usr/lib -nostdlib -lc -lm -lz -llog
 LDFLAGS += -nostdlib -Wl,-dynamic-linker,/system/bin/linker -Wl,-z-nocopyreloc

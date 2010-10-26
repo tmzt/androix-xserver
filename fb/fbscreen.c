@@ -230,10 +230,14 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 	free(depths);
 	return FALSE;
     }
+    LogMessage(X_INFO, "[fbscreen] pScreen->CreateScreenResources before miScreenInit: %p", pScreen->CreateScreenResources);
     if (! miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
 			rootdepth, ndepths, depths,
 			defaultVisual, nvisuals, visuals))
 	return FALSE;
+    LogMessage(X_INFO, "[fbscreen] pScreen->CreateScreenResources after miScreenInit: %p", pScreen->CreateScreenResources);
+
+
     /* overwrite miCloseScreen with our own */
     pScreen->CloseScreen = fbCloseScreen;
 #ifdef FB_24_32BIT
@@ -243,6 +247,7 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 	pScreen->CreateScreenResources = fb24_32CreateScreenResources;
     }
 #endif
+    LogMessage(X_INFO, "[fbscreen] pScreen->CreateScreenResources: %p (bpp: %d imagebpp): %d", pScreen->CreateScreenResources, bpp, imagebpp);
     return TRUE;
 }
 

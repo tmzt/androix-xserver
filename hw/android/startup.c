@@ -31,7 +31,10 @@
 #include "android.h"
 #include "private.h"
 
-static DevScreenPrivateKeyRec androidScreenKeyRec;
+//static DevScreenPrivateKeyRec androidScreenKeyRec;
+//define androidScreenKey (&androidScreenKeyRec)
+
+static DevPrivateKeyRec androidScreenKeyRec;
 #define androidScreenKey (&androidScreenKeyRec)
 
 // Common pixmap formats
@@ -65,26 +68,23 @@ static Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **arg
 
     LogMessage(X_INFO, "[startup] AndroidScreenInit called: index: %d pScreen: %p", index, pScreen);
 
-    if(!dixRegisterScreenPrivateKey(&androidScreenKeyRec, pScreen, PRIVATE_SCREEN, 0)) return FALSE;
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: registered key: %p", androidScreenKeyRec);
+//    if(!dixRegisterPrivateKey(androidScreenKey, pScreen, PRIVATE_SCREEN, 0)) return FALSE;
+    if(!dixRegisterPrivateKey(androidScreenKey, PRIVATE_SCREEN, 0)) {
+        LogMessage(X_ERROR, "[startup] AndroidScreenInit: failed to register screen key");
+    };
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: registered key: %p", androidScreenKey);
 
     priv = (AndroidScreenPriv *)malloc(sizeof(AndroidScreenPriv));
-    dixSetScreenPrivate(pScreen->devPrivates, androidScreenKey, pScreen, priv);
+
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: setting private: key: %p priv: %p", androidScreenKey, priv);
+    dixSetPrivate(&(pScreen->devPrivates), androidScreenKey, priv);
+//    dixSetScreenPrivate(pScreen->devPrivates, androidScreenKey, pScreen, priv);
 //    dixSetScreenPrivate(PrivatePtr *privates, const DevScreenPrivateKey key, ScreenPtr pScreen, pointer val)
 
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: set private: %p (devPrivates: %p)", androidScreenKey, pScreen->devPrivates );
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: private set: %p (devPrivates: %p)", androidScreenKey, pScreen->devPrivates );
 
-    priv->width = 800;
-    priv->height = 480;
-    priv->depth = 16;
-
-    priv->bytes_per_line = ((priv->width * priv->bitsPerPixel + 31) >> 5) << 2;
-    free(priv->base);
-    priv->base = malloc (priv->bytes_per_line * priv->height);
-    priv->byteStride = priv->bytes_per_line;
-    priv->pixelStride = (priv->bytes_per_line * 8/priv->bitsPerPixel);
-
-    LogMessage(X_INFO, "[startup] AddScreen: priv->base: %p", priv->base);
+    pScreen->width = 800;
+    pScreen->height = 480;
 
     priv->visuals = (1 << TrueColor);
 #define Mask(o,l)   (((1 << l) - 1) << o)
@@ -94,22 +94,54 @@ static Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **arg
     priv->greenMask = Mask (5, 6);
     priv->blueMask = Mask (0, 5);
 
-	miSetVisualTypesAndMasks (16, (1 << TrueColor),
+    priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
+    priv->base = NULL;
+    free(priv->base);
+    priv->base = malloc (priv->bytes_per_line * pScreen->height);
+    LogMessage(X_INFO, "[startup] alloc framebuffer (%dx%d): %p", priv->bytes_per_line, pScreen->height, priv->base);
+
+    priv->byteStride = priv->bytes_per_line;
+    priv->pixelStride = (priv->bytes_per_line * 8/priv->bitsPerPixel);
+
+    LogMessage(X_INFO, "[startup] AddScreen: priv->base: %p", priv->base);
+
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: miSetVisualTypes");
+	miSetVisualTypesAndMasks (16, ((1 << TrueColor) | (1 << DirectColor)),
         8, TrueColor, priv->redMask, priv->greenMask, priv->blueMask);
 
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: miSetPixmapsDepths");
     miSetPixmapDepths();
 
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: fbScreenInit: pScreen: %p base: %p width: %d height: %d dpi: %d stride?: %d bpp: %d", pScreen, priv->base, pScreen->width, pScreen->height, dpi, priv->pitch/(priv->bitsPerPixel/8), priv->bitsPerPixel);
     if (! fbScreenInit(pScreen,
                 priv->base,                 // pointer to screen bitmap
-                priv->width, priv->height,          // screen size in pixels
+                pScreen->width, pScreen->height,          // screen size in pixels
                 dpi, dpi,                         // dots per inch
                 priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
+        LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbScreenInit failed");
         return FALSE;
     }
 
     pScreen->SaveScreen = AndroidSaveScreen;
+
+/*
+    LogMessage(X_INFO, "[startup] fbFinishScreenInit");
+    if (!fbFinishScreenInit (pScreen,
+			     priv->base,
+			     pScreen->width, pScreen->height,
+			     monitorResolution, monitorResolution,
+                 dpi, dpi,
+			     priv->pixelStride,
+			     priv->bitsPerPixel))
+    {
+	return FALSE;
+    }
+*/
+
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: pScreen->CreateScreenResources: %p", pScreen->CreateScreenResources);
+
 
     if (! fbPictureInit(pScreen, 0, 0)) {
         return FALSE;
@@ -118,10 +150,12 @@ static Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **arg
     pScreen->x = 0;
     pScreen->y = 0;
 
+    fbCreateDefColormap(pScreen);
+
     LogMessage(X_INFO, "[startup] initNativeScreen: pScreen: %p", pScreen);
     androidInitNativeScreen(pScreen);
-    LogMessage(X_INFO, "[startup] initNativeFramebuffer: base: %p buf: %p width: %d height: %d depth: %d", priv->base, &(priv->buf), priv->width, priv->height, priv->depth);
-    androidInitNativeFramebuffer(priv->base, &(priv->buf), priv->width, priv->height, priv->depth);
+    LogMessage(X_INFO, "[startup] initNativeFramebuffer: base: %p buf: %p width: %d height: %d depth: %d", priv->base, &(priv->buf), pScreen->width, pScreen->height, priv->depth);
+    androidInitNativeFramebuffer(priv->base, &(priv->buf), pScreen->width, pScreen->height, priv->depth);
 
     return TRUE;
 }
@@ -131,7 +165,25 @@ void OsVendorInit(void) {}
 void OsVendorFatalError(void) {}
 
 void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv ) {
+    int i;
+    int numFormats = 0;
+
     LogMessage(X_INFO, "[startup] InitOutput called");
+
+    pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
+    pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
+    pScreenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
+    pScreenInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
+
+    for(i = 0; i < NUMFORMATS; i++) {
+        pScreenInfo->formats[i].depth = formats[i].depth;
+        pScreenInfo->formats[i].bitsPerPixel = formats[i].bitsPerPixel;
+        pScreenInfo->formats[i].scanlinePad = BITMAP_SCANLINE_PAD;
+        numFormats++;
+    }
+
+    pScreenInfo->numPixmapFormats = numFormats;
+
     AddScreen(AndroidScreenInit, argc, argv);
 }
 

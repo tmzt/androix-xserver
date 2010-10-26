@@ -150,10 +150,12 @@ miCreateScreenResources(ScreenPtr pScreen)
 	/* create a pixmap with no data, then redirect it to point to
 	 * the screen
 	 */
+    LogMessage(X_INFO, "[miscrinit] cp: pScreen: %p pScreen->rootDepth: %d", pScreen, pScreen->rootDepth);
 	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
 	if (!pPixmap)
 	    return FALSE;
 
+    LogMessage(X_INFO, "[miscrinit] mph pPixmap: %p pScreen->width: %d pScreen->height: %d pScreen->rootDepth: %d BPP: %d pad: %d pbits: %p", pPixmap, pScreen->width, pScreen->height, pScreen->rootDepth, BitsPerPixel(pScreen->rootDepth), PixmapBytePad(pScrInitParms->width, pScreen->rootDepth), pScrInitParms->pbits);
 	if (!(*pScreen->ModifyPixmapHeader)(pPixmap, pScreen->width,
 		    pScreen->height, pScreen->rootDepth,
 		    BitsPerPixel(pScreen->rootDepth),
@@ -217,6 +219,8 @@ miScreenInit(
     VisualRec *visuals		/* supported visuals */
     )
 {
+    LogMessage(X_INFO, "[miscrinit] in miScreenInit");
+
     pScreen->width = xsize;
     pScreen->height = ysize;
     pScreen->mmWidth = (xsize * 254 + dpix * 5) / (dpix * 10);

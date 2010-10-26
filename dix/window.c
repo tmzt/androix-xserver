@@ -451,9 +451,15 @@ InitRootWindow(WindowPtr pWin)
     ScreenPtr pScreen = pWin->drawable.pScreen;
     int backFlag = CWBorderPixel | CWCursor | CWBackingStore;
 
+    LogMessage(X_INFO, "[window] in InitRootWindow");
+    LogMessage(X_INFO, "[window] InitRootWindow: CreateWindow: pWin: %p", pWin);
     if (!(*pScreen->CreateWindow)(pWin))
 	return; /* XXX */
+    LogMessage(X_INFO, "[window] InitRootWindow: after CreateWindow");
+
     (*pScreen->PositionWindow)(pWin, 0, 0);
+    LogMessage(X_INFO, "[window] InitRootWindow: after PositionWindow");
+
 
     pWin->cursorIsNone = FALSE;
     pWin->optional->cursor = rootCursor;
@@ -475,8 +481,12 @@ InitRootWindow(WindowPtr pWin)
     pWin->forcedBS = (defaultBackingStore != NotUseful);
     /* We SHOULD check for an error value here XXX */
     (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
+    LogMessage(X_INFO, "[window] InitRootWindow: after CWA");
 
+
+    LogMessage(X_INFO, "[window] InitRootWindow: before MapWindow: pWin: %p serverClient: %p", pWin, serverClient);
     MapWindow(pWin, serverClient);
+    LogMessage(X_INFO, "[window] InitRootWindow: after MapWindow");
 }
 
 /* Set the region to the intersection of the rectangle and the

@@ -94,6 +94,7 @@ androidKeybdProc(DeviceIntPtr pDevice, int onoff)
         break;
     case DEVICE_ON:
 	pDev->on = TRUE;
+    LogMessage(X_DEFAULT, "[events] initNativeKeyboard: pDevice: %p", pDevice);
     androidInitNativeKeyboard(pDevice);
 	break;
     case DEVICE_OFF:
@@ -136,6 +137,7 @@ androidMouseProc(DeviceIntPtr pDevice, int onoff)
 
     case DEVICE_ON:
 	pDev->on = TRUE;
+    LogMessage(X_DEFAULT, "[events] initNativeKeyboard: pDevice: %p", pDevice);
     androidInitNativeMouse(pDev);
         break;
 
@@ -157,14 +159,21 @@ InitInput(int argc, char *argv[])
 {
     DeviceIntPtr p, k;
     Atom xiclass;
+    LogMessage(X_DEFAULT, "[events] in InitInput");
+
+    LogMessage(X_DEFAULT, "[events] InitInput: adding mouse proc %p (serverClient: %p)", androidMouseProc, serverClient);
     p = AddInputDevice(serverClient, androidMouseProc, TRUE);
+    LogMessage(X_DEFAULT, "[events] InitInput: adding keybd proc %p (serverClient: %p)", androidKeybdProc, serverClient);
     k = AddInputDevice(serverClient, androidKeybdProc, TRUE);
+    LogMessage(X_DEFAULT, "[events] InitInput: registering pointer %p", p);
     RegisterPointerDevice(p);
     xiclass = MakeAtom(XI_MOUSE, sizeof(XI_MOUSE) - 1, TRUE);
     AssignTypeAndName(p, xiclass, "Android mouse");
+    LogMessage(X_DEFAULT, "[events] InitInput: registering keyboard %p", p);
     RegisterKeyboardDevice(k);
     xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);
     AssignTypeAndName(k, xiclass, "Android keyboard");
+    LogMessage(X_DEFAULT, "[events] InitInput: AddEnabledDevice wakeupFD[0]", Android->wakeupFD[0]);
     AddEnabledDevice(Android->wakeupFD[0]);
     (void)mieqInit();
 }

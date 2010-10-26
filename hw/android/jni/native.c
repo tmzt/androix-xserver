@@ -69,13 +69,14 @@ void androidInitNativeScreen(void *screen) {
 int androidInitNativeKeyboard(void *keyboard) {
     JNIEnv *jni_env;
     (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
-
+    LOG("[native] androidInitNativeKeyboard: keyboard: %p", keyboard);
     return (*jni_env)->CallIntMethod(jni_env, Android->blitview, Android->initNativeKeyboard, keyboard);
 };
 
 int androidInitNativeMouse(void *mouse) {
     JNIEnv *jni_env;
     (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
+    LOG("[native] androidInitNativeMouse: mouse: %p", mouse);
     return (*jni_env)->CallIntMethod(jni_env, Android->blitview, Android->initNativeMouse, mouse);
 };
 
