@@ -120,6 +120,7 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
 
     LogMessage(X_INFO, "[startup] AndroidScreenInit: pScreen->CreateScreenResources: %p", pScreen->CreateScreenResources);
 
+    miClearVisualTypes();
 
 /* moved fbPictureInit */
 
@@ -170,6 +171,11 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
     }
 */
 
+    if (!AndroidInitVisuals(pScreen)) {
+        LogMessage(X_ERROR, "[screen] AndroidFinishScreenInitFB: AndroidInitVisuals failed");
+        return FALSE;
+    }
+
     int dpi = 100; /* get this from Android */
     if (! fbSetupScreen(pScreen,
                 priv->base,                 // pointer to screen bitmap
@@ -182,18 +188,11 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
         return FALSE;
     }
 
-    if (!AndroidInitVisuals(pScreen)) {
-        LogMessage(X_ERROR, "[screen] AndroidFinishScreenInitFB: AndroidInitVisuals failed");
-        return FALSE;
-    }
-
-
     pbits = priv->base;
     miSetPixmapDepths();
 
     pScreen->SaveScreen = AndroidSaveScreen;
 
-    fbCreateDefColormap(pScreen);
 
 /*
   if (!fbFinishScreenInit (pScreen,
@@ -218,6 +217,8 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
         LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbFinishScreenInit failed");
         return FALSE;
     }
+
+    fbCreateDefColormap(pScreen);
     
 //    pScreen->BlockHandler = androidBlockHandler;
 //    pScreen->WakeupHandler = androidWakeupHandler;
