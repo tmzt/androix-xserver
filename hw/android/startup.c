@@ -49,7 +49,14 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 static Bool AndroidSaveScreen(ScreenPtr screen, int on) {
     /* tell Android to shutoff the display (based on dpms settings?) */
     return TRUE;
-};
+}
+
+Bool DPMSSupported() { return TRUE; }
+
+int DPMSSet(ClientPtr client, int level) {
+    /* tell Android to shutoff the display */
+    return TRUE;
+}
 
 static Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     int dpi = 96; /* set from android */
@@ -105,4 +112,18 @@ void OsVendorFatalError(void) {}
 void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv ) {
     AddScreen(AndroidScreenInit, argc, argv);
 }
+
+int ddxProcessArgument(int argc, char *argv[], int i) { return 0; }
+
+void ddxUseMsg(void) {
+    /* we're started from jni, not the command line */
+}
+
+void ddxGiveUp(void) {
+    LogMessage(X_ERROR, "[startup] AndroiX DIX Exiting");
+}
+
+
+
+
 

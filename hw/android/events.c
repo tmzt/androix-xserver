@@ -44,6 +44,15 @@ from The Open Group.
 #include "exevents.h"
 #include "extinit.h"
 
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
+#include "XIstubs.h" /* even though we don't use stubs.  cute, no? */
+#include "exevents.h"
+#include "extinit.h"
+#include "exglobals.h"
+#include "eventstr.h"
+#include "xserver-properties.h"
+
 #include "android.h"
 
 Bool
@@ -164,3 +173,74 @@ void
 CloseInput (void)
 {
 }
+
+int
+ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
+                        xDeviceCtl *control)
+{
+    switch (control->control) {
+    case DEVICE_RESOLUTION:
+        /* FIXME do something more intelligent here */
+        return BadMatch;
+
+    case DEVICE_ABS_CALIB:
+    case DEVICE_ABS_AREA:
+        return Success;
+
+    case DEVICE_CORE:
+        return BadMatch;
+    case DEVICE_ENABLE:
+        return Success;
+
+    default:
+        return BadMatch;
+    }
+
+    /* NOTREACHED */
+    return BadImplementation;
+}
+
+void
+OpenInputDevice(DeviceIntPtr pDev, ClientPtr client, int *status)
+{
+    if (!pDev)
+        *status = BadDevice;
+    else
+        *status = Success;
+}
+
+void
+CloseInputDevice(DeviceIntPtr pDev, ClientPtr client)
+{
+    return;
+}
+
+/* We initialise all input devices at startup. */
+void
+AddOtherInputDevices(void)
+{
+    return;
+}
+
+void
+DeleteInputDeviceRequest(DeviceIntPtr dev)
+{
+    return;
+}
+
+/* At the moment, absolute/relative is up to the client. */
+int
+SetDeviceMode(register ClientPtr client, DeviceIntPtr pDev, int mode)
+{
+    return BadMatch;
+}
+
+int
+SetDeviceValuators(register ClientPtr client, DeviceIntPtr pDev,
+                   int *valuators, int first_valuator, int num_valuators)
+{
+    return BadMatch;
+}
+
+
+
