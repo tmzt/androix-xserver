@@ -57,7 +57,7 @@ void androidCallbackTouchDown(void *mousePtr, int x, int y) {
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: mouse: %p x: %d y: %d", mouse, x, y);
 
     GetEventList(&androidEvents);
-    n = GetPointerEvents(androidEvents, mouse, MotionNotify, 1, POINTER_ABSOLUTE, 0, 3, v);
+    n = GetPointerEvents(androidEvents, mouse, MotionNotify, 1, POINTER_ABSOLUTE, 0, 2, v);
     LogMessage(X_DEFAULT, "[native] andriodCallbackTouchDown mouse->enabled: %d", mouse->enabled);
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: n: %d", n);
     for (i = 0; i < n; i++) {
@@ -75,7 +75,7 @@ void androidCallbackTouchUp(void *mousePtr, int x, int y) {
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: mouse: %p x: %d y: %d", mouse, x, y);
 
     GetEventList(&androidEvents);
-    n = GetPointerEvents(androidEvents, mouse, MotionNotify, 1, POINTER_ABSOLUTE, 0, 3, v);
+    n = GetPointerEvents(androidEvents, mouse, MotionNotify, 1, POINTER_ABSOLUTE, 0, 2, v);
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp mouse->enable: %d", mouse->enabled);
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: n: %d", n);
     for (i = 0; i < n; i++) {
