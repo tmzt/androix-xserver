@@ -71,12 +71,16 @@ void ProcessInputEvents(void) {
     mieqProcessInputEvents();
     LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
 
-
+/*
     // Empty the signaling pipe
     while (x == sizeof(nullbyte)) {
       x = read(Android->wakeupFD[0], &nullbyte, sizeof(nullbyte));
       LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
     }
+*/
+
+    x = read(Android->wakeupFD[0], &nullbyte, 1);
+    LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
 }
 
 void DDXRingBell(int volume, int pitch, int duration)
@@ -141,7 +145,7 @@ androidMouseProc(DeviceIntPtr pDevice, int onoff)
 
     case DEVICE_ON:
 	pDev->on = TRUE;
-    LogMessage(X_DEFAULT, "[events] initNativeKeyboard: pDevice: %p", pDevice);
+    LogMessage(X_DEFAULT, "[events] initNativeMouse: pDevice: %p", pDevice);
     androidInitNativeMouse(pDev);
         break;
 
