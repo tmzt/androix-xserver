@@ -31,7 +31,8 @@
 #include "android.h"
 #include "private.h"
 
-DevPrivateKeyRec    androidScreenKeyRec;
+static DevScreenPrivateKeyRec androidScreenKeyRec;
+#define androidScreenKey (&androidScreenKeyRec)
 
 // Common pixmap formats
 static PixmapFormatRec formats[] = {
@@ -62,10 +63,28 @@ static Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **arg
     int dpi = 96; /* set from android */
     AndroidScreenPriv *priv;
 
-    if(!dixRegisterPrivateKey(&androidScreenKeyRec, PRIVATE_SCREEN, 0)) return FALSE;
+    LogMessage(X_INFO, "[startup] AndroidScreenInit called: index: %d pScreen: %p", index, pScreen);
+
+    if(!dixRegisterScreenPrivateKey(&androidScreenKeyRec, pScreen, PRIVATE_SCREEN, 0)) return FALSE;
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: registered key: %p", androidScreenKeyRec);
 
     priv = (AndroidScreenPriv *)malloc(sizeof(AndroidScreenPriv));
-    dixSetPrivate(pScreen->devPrivates, &androidScreenKeyRec, priv);
+    dixSetScreenPrivate(pScreen->devPrivates, androidScreenKey, pScreen, priv);
+//    dixSetScreenPrivate(PrivatePtr *privates, const DevScreenPrivateKey key, ScreenPtr pScreen, pointer val)
+
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: set private: %p (devPrivates: %p)", androidScreenKey, pScreen->devPrivates );
+
+    priv->width = 800;
+    priv->height = 480;
+    priv->depth = 16;
+
+    priv->bytes_per_line = ((priv->width * priv->bitsPerPixel + 31) >> 5) << 2;
+    free(priv->base);
+    priv->base = malloc (priv->bytes_per_line * priv->height);
+    priv->byteStride = priv->bytes_per_line;
+    priv->pixelStride = (priv->bytes_per_line * 8/priv->bitsPerPixel);
+
+    LogMessage(X_INFO, "[startup] AddScreen: priv->base: %p", priv->base);
 
     priv->visuals = (1 << TrueColor);
 #define Mask(o,l)   (((1 << l) - 1) << o)
@@ -99,7 +118,9 @@ static Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **arg
     pScreen->x = 0;
     pScreen->y = 0;
 
+    LogMessage(X_INFO, "[startup] initNativeScreen: pScreen: %p", pScreen);
     androidInitNativeScreen(pScreen);
+    LogMessage(X_INFO, "[startup] initNativeFramebuffer: base: %p buf: %p width: %d height: %d depth: %d", priv->base, &(priv->buf), priv->width, priv->height, priv->depth);
     androidInitNativeFramebuffer(priv->base, &(priv->buf), priv->width, priv->height, priv->depth);
 
     return TRUE;
@@ -110,6 +131,7 @@ void OsVendorInit(void) {}
 void OsVendorFatalError(void) {}
 
 void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv ) {
+    LogMessage(X_INFO, "[startup] InitOutput called");
     AddScreen(AndroidScreenInit, argc, argv);
 }
 
@@ -122,8 +144,4 @@ void ddxUseMsg(void) {
 void ddxGiveUp(void) {
     LogMessage(X_ERROR, "[startup] AndroiX DIX Exiting");
 }
-
-
-
-
 

@@ -9,7 +9,6 @@ libddxandroid_la_CFLAGS = 	\
 
 libddxandroid_la_SOURCES =	\
 	startup.c		\
-	native.c		\
 	callback.c		\
 	events.c		\
 	$(top_srcdir)/mi/miinitext.c
