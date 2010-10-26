@@ -32,8 +32,8 @@
 #include "screen.h"
 #include "private.h"
 
-static DevPrivateKeyRec androidScreenKeyRec;
-#define androidScreenKey (&androidScreenKeyRec)
+DevPrivateKeyRec androidScreenKeyRec;
+
 
 static Bool AndroidSaveScreen(ScreenPtr screen, int on) {
     /* tell Android to shutoff the display (based on dpms settings?) */
@@ -48,14 +48,22 @@ int DPMSSet(ClientPtr client, int level) {
 }
 
 static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
-    AndroidScreenPriv *priv = dixLookupPrivate(pScreen->devPrivates, androidScreenKey);
+    Bool res;
+    AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
-    miCreateScreenResources(pScreen);
+//    miCreateScreenResources(pScreen);
+    res = priv->wrappedCreateScreenResources(pScreen);
 
 /*
     if(!shadowAdd(pScreen, pScreen->devPrivate, AndroidShadowUpdate, NULL, 0, 0)) {
+        LogMessage(X_ERROR, "[screen] AndroidCreateScreenResources: shadowAdd failed");
     }
 */
+
+    LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetShadow: pScreen->devPrivate: %p", pScreen->devPrivate);
+    androidSetShadow(pScreen);
+    LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetShadow: pScreen->devPrivate: %p", pScreen->devPrivate);
+    return res;
 }
 
 Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
@@ -181,7 +189,10 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
                 dpi, dpi,                         // dots per inch
+/*
                 priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
+*/
+                (priv->bitsPerPixel)/8,
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
         LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbScreenInit failed");
@@ -211,7 +222,10 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
                 dpi, dpi,                         // dots per inch
+/*
                 priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
+*/
+                (priv->bitsPerPixel)/8,
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
         LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbFinishScreenInit failed");
@@ -237,7 +251,14 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 
     /* miDCInitialize ? */
 
-    
+    if (!shadowSetup(pScreen))
+	{
+	  ErrorF ("[screen] AndroidFinishScreenInit: shadowSetup failed\n");
+	  return FALSE;
+	}
+
+    priv->wrappedCreateScreenResources = pScreen->CreateScreenResources;
+    pScreen->CreateScreenResources = AndroidCreateScreenResources;
 
     return TRUE;
 
@@ -279,19 +300,4 @@ static Bool AndroidInitVisuals (ScreenPtr pScreen) {
 
     return TRUE;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

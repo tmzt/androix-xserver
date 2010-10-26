@@ -21,9 +21,10 @@ typedef struct _androidPriv {
 } AndroidPriv;
 
 typedef struct _androidScreenPriv {
-//    Rotation	randr;
+    Rotation	randr;
     DamagePtr       pDamage;
     ScreenInfo   *pScreenInfo;
+    Bool(*wrappedCreateScreenResources)(ScreenPtr);
 
     CARD8	*base;
     jobject buf;
