@@ -474,7 +474,9 @@ androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
    * much faster efficiently updating via tranforming 
    * pBuf->pDamage  regions     
   */
-  shadowUpdateRotatePacked(pScreen, pBuf);
+//  shadowUpdateRotatePacked(pScreen, pBuf);
+
+
   //hostx_paint_rect(screen, 0,0,0,0, screen->width, screen->height);
   //androidDraw(screen,0, 0, /*?*/ screen->width, screen->height);
   androidDraw(0, 0, /*?*/ pScreen->width, pScreen->height);

@@ -60,10 +60,26 @@ static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
     }
 */
 
+
+/*
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetShadow: pScreen->devPrivate: %p", pScreen->devPrivate);
     androidSetShadow(pScreen);
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetShadow: pScreen->devPrivate: %p", pScreen->devPrivate);
-    return res;
+*/
+
+    LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
+
+    if(!shadowAdd(pScreen, pScreen->devPrivate, androidShadowUpdate, NULL, 0, 0)) {
+        LogMessage(X_ERROR, "[screen] AndroidCreateScreenResources: shadowAdd failed");
+    }
+
+//    androidSetShadow(pScreen);
+//    androidSetInternalDamage(pScreen);
+    LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
+
+
+//    return res;
+    return TRUE;
 }
 
 Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
@@ -95,7 +111,8 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     priv->greenMask = Mask (5, 6);
     priv->blueMask = Mask (0, 5);
 
-    priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
+//    priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
+    priv->bytes_per_line = 1600;
     priv->base = NULL;
     free(priv->base);
     priv->base = malloc (priv->bytes_per_line * pScreen->height);
@@ -192,7 +209,9 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 /*
                 priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
 */
-                (priv->bitsPerPixel)/8,
+/*                priv->bytes_per_line, */
+/*                (priv->bitsPerPixel)/8,   */
+                pScreen->width,
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
         LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbScreenInit failed");
@@ -225,7 +244,9 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 /*
                 priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
 */
-                (priv->bitsPerPixel)/8,
+/*                (priv->bitsPerPixel)/8,   */
+/*                priv->bytes_per_line, */
+                pScreen->width,
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
         LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbFinishScreenInit failed");
