@@ -25,11 +25,8 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     struct stat stats;
     int mode = 0666;
     
-    char *argv[] = {":1"};
-    char *envp[] = {};
-
-    xandroid_jni_env = env; // pass to kdandroid driver
-    LOG("xandroid_jni_env: %p", xandroid_jni_env);
+    char argv[] = {":1"};
+    char envp[] = {};
 
     LOG("fixing up /data/data/net.homeip.ofn.androix/usr/bin/xkbcomp");
 
@@ -47,7 +44,7 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     LOG("local (android) socket: %d", Android->wakeupFD[1]);
     
     LOG("starting DIX");
-	dix_main(1, argv, envp);
+	dix_main(1, &argv, &envp);
     LOG("returning from DIX (this shouldn't happen)");
 }
 

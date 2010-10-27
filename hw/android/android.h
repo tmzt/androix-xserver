@@ -28,12 +28,6 @@ typedef struct _androidVars {
 
 } AndroidVars;
 
-/* defined in android component and shared with kdandroid */
-JavaVM *xandroid_jvm;
-JNIEnv *xandroid_jni_env;
-
-/* defined in kdandroid and shared with android component */
-
 AndroidVars *Android;
 
 /* defined in android component */
