@@ -81,7 +81,7 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     pScreen->width = 800;
     pScreen->height = 480;
 
-    priv->visuals = (1 << TrueColor);
+    priv->visuals = ((1 << TrueColor) | (1 << DirectColor));
 #define Mask(o,l)   (((1 << l) - 1) << o)
     priv->dpi = 100;    /* set from Android */
     priv->depth = 16;
@@ -164,8 +164,6 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
         return FALSE;
     }
 
-    fbCreateDefColormap(pScreen);
-    
 //    pScreen->BlockHandler = androidBlockHandler;
 //    pScreen->WakeupHandler = androidWakeupHandler;
 //    pScreen->blockData = pScreen;
@@ -183,6 +181,8 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 
     miDCInitialize(pScreen, &androidPointerCursorFuncs);
 
+    fbCreateDefColormap(pScreen);
+    
     if (!shadowSetup(pScreen))
 	{
 	  ErrorF ("[screen] AndroidFinishScreenInit: shadowSetup failed\n");
@@ -203,7 +203,8 @@ static Bool AndroidInitVisuals (ScreenPtr pScreen) {
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
     if (!miSetVisualTypesAndMasks (priv->depth,
-                     TrueColorMask,         
+/*                     TrueColorMask,         */
+                     priv->visuals,
                      8,
                      -1,
                      priv->redMask,
