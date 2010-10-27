@@ -62,7 +62,6 @@ static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
 }
 
 Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
-    int dpi = 100; /* set from android */
     AndroidScreenPriv *priv;
 
     LogMessage(X_INFO, "[startup] AndroidScreenInit called: index: %d pScreen: %p", index, pScreen);
@@ -84,6 +83,7 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
 
     priv->visuals = (1 << TrueColor);
 #define Mask(o,l)   (((1 << l) - 1) << o)
+    priv->dpi = 100;    /* set from Android */
     priv->depth = 16;
     priv->bitsPerPixel = 16;
     priv->redMask = Mask (11, 5);
@@ -133,12 +133,12 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
         return FALSE;
     }
 
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: fbSetupScreen: pScreen: %p base: %p width: %d height: %d dpi: %d stride?: %d bpp: %d", pScreen, priv->base, pScreen->width, pScreen->height, dpi, priv->pitch/(priv->bitsPerPixel/8), priv->bitsPerPixel);
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: fbSetupScreen: pScreen: %p base: %p width: %d height: %d dpi: %d stride?: %d bpp: %d", pScreen, priv->base, pScreen->width, pScreen->height, priv->dpi, priv->pitch/(priv->bitsPerPixel/8), priv->bitsPerPixel);
 
     if (! fbSetupScreen(pScreen,
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
-                dpi, dpi,                         // dots per inch
+                priv->dpi, priv->dpi,                         // dots per inch
 /*              priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer   */
                 pScreen->width,
                 priv->bitsPerPixel))               // bits per pixel for screen
@@ -155,7 +155,7 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
     if (!fbFinishScreenInit(pScreen,
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
-                dpi, dpi,                         // dots per inch
+                priv->dpi, priv->dpi,                         // dots per inch
 /*              priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer   */
                 pScreen->width,
                 priv->bitsPerPixel))               // bits per pixel for screen

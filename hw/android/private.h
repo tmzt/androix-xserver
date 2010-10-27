@@ -29,6 +29,7 @@ typedef struct _androidScreenPriv {
     CARD8	*base;
     jobject buf;
     int		bytes_per_line;
+    int dpi;
     int pitch;
     int depth;
     int bitsPerPixel;
