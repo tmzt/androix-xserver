@@ -29,6 +29,9 @@ xandroixdynamic: xandroix.c stub.c
 xandroix: xandroix.c stub.c ../obj/local/armeabi/libxandroid.a
 	${CC} -o xandroix xandroix.c stub.c ${CFLAGS} ${BUILD_LDFLAGS} ${LDFLAGS} ${LDFLAGS_STATIC} ${LOCAL_LDFLAGS}
 
+xandroixinputstress: xandroixinputstress.c inputstress.c ../obj/local/armeabi/libxandroid.a
+	${CC} -o xandroixinputstress xandroixinputstress.c inputstress.c ${CFLAGS} ${BUILD_LDFLAGS} ${LDFLAGS} ${LDFLAGS_STATIC} ${LOCAL_LDFLAGS}
+
 libandroix.so: stub.c ../obj/local/armeabi/libxandroid.a
 	$(CC) -o libandroix.so stub.c ${CFLAGS} ${LDFLAGS} ${LOCAL_LDFLAGS} ${LDFLAGS_LIB}
 
