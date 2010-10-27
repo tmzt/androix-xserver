@@ -50,42 +50,19 @@ int DPMSSet(ClientPtr client, int level) {
 static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
     Bool res;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
-
-//    miCreateScreenResources(pScreen);
     res = priv->wrappedCreateScreenResources(pScreen);
 
-/*
-    if(!shadowAdd(pScreen, pScreen->devPrivate, AndroidShadowUpdate, NULL, 0, 0)) {
-        LogMessage(X_ERROR, "[screen] AndroidCreateScreenResources: shadowAdd failed");
-    }
-*/
-
-
-/*
-    LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetShadow: pScreen->devPrivate: %p", pScreen->devPrivate);
-    androidSetShadow(pScreen);
-    LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetShadow: pScreen->devPrivate: %p", pScreen->devPrivate);
-*/
-
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
-
-/*
-    if(!shadowAdd(pScreen, pScreen->devPrivate, androidShadowUpdate, NULL, 0, 0)) {
-        LogMessage(X_ERROR, "[screen] AndroidCreateScreenResources: shadowAdd failed");
-    }
-*/
-
-//    androidSetShadow(pScreen);
+    //androidSetShadow(pScreen);
     androidSetInternalDamage(pScreen);
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
 
-
-//    return res;
+    //return res;
     return TRUE;
 }
 
 Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
-    int dpi = 96; /* set from android */
+    int dpi = 100; /* set from android */
     AndroidScreenPriv *priv;
 
     LogMessage(X_INFO, "[startup] AndroidScreenInit called: index: %d pScreen: %p", index, pScreen);
@@ -113,7 +90,7 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     priv->greenMask = Mask (5, 6);
     priv->blueMask = Mask (0, 5);
 
-//    priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
+    //priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
     priv->bytes_per_line = 1600;
     priv->base = NULL;
     free(priv->base);
@@ -125,23 +102,6 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
 
     LogMessage(X_INFO, "[startup] AddScreen: priv->base: %p", priv->base);
 
-/*
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: miSetVisualTypes");
-	miSetVisualTypesAndMasks (16, ((1 << TrueColor) | (1 << DirectColor)),
-        8, TrueColor, priv->redMask, priv->greenMask, priv->blueMask);
-*/
-
-/*
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: miSetPixmapsDepths");
-    miSetPixmapDepths();
-*/
-
-/*
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: fbScreenInit: pScreen: %p base: %p width: %d height: %d dpi: %d stride?: %d bpp: %d", pScreen, priv->base, pScreen->width, pScreen->height, dpi, priv->pitch/(priv->bitsPerPixel/8), priv->bitsPerPixel);
-*/
-
-/* moved fbScreenInit */
-
     pScreen->SaveScreen = AndroidSaveScreen;
     pScreen->CreateScreenResources = AndroidCreateScreenResources;
 
@@ -149,12 +109,8 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
 
     miClearVisualTypes();
 
-/* moved fbPictureInit */
-
     pScreen->x = 0;
     pScreen->y = 0;
-
-/* moved   fbCreateDefColormap(pScreen); */
 
     AndroidFinishScreenInit(index, pScreen, argc, argv);
 
@@ -177,7 +133,8 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
         return FALSE;
     }
 
-    int dpi = 100; /* get this from Android */
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: fbSetupScreen: pScreen: %p base: %p width: %d height: %d dpi: %d stride?: %d bpp: %d", pScreen, priv->base, pScreen->width, pScreen->height, dpi, priv->pitch/(priv->bitsPerPixel/8), priv->bitsPerPixel);
+
     if (! fbSetupScreen(pScreen,
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
@@ -275,5 +232,4 @@ static miPointerScreenFuncRec androidPointerCursorFuncs =
     androidCrossScreen,
     miPointerWarpCursor
 };
-
 
