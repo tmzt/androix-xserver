@@ -68,13 +68,13 @@ Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint 
     wakeupFD();
 
     //androidRequestInputLock();
-//    LOG("keyDown: taking miEventQueueMutex");
-//    pthread_mutex_lock(Android->miEventQueueMutex);
+    LOG("keyDown: taking miEventQueueMutex");
+    pthread_mutex_lock(Android->miEventQueueMutex);
     androidCallbackKeyDown((void *)kbd, keyCode);
     wakeupFD();
     //androidReleaseInputLock();
-//    LOG("keyDown: releasing miEventQueueMutex");
-//    pthread_mutex_unlock(Android->miEventQueueMutex);
+    LOG("keyDown: releasing miEventQueueMutex");
+    pthread_mutex_unlock(Android->miEventQueueMutex);
 }
 
 void
@@ -82,13 +82,13 @@ Java_net_homeip_ofn_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint kb
 {
     LOG("keyUp: kbd: %p keyCode: %d", (unsigned int)kbd, keyCode);
     //androidRequestInputLock();
-//    LOG("keyUp: taking miEventQueueMutex");
-//    pthread_mutex_lock(Android->miEventQueueMutex);
+    LOG("keyUp: taking miEventQueueMutex");
+    pthread_mutex_lock(Android->miEventQueueMutex);
     androidCallbackKeyUp((void *)kbd, keyCode);
-    wakeupFD();
     //androidReleaseInputLock();
-//    LOG("keyUp: releasing miEventQueueMutex");
-//    pthread_mutex_unlock(Android->miEventQueueMutex);
+    LOG("keyUp: releasing miEventQueueMutex");
+    pthread_mutex_unlock(Android->miEventQueueMutex);
+    wakeupFD();
 }
 
 void
@@ -96,13 +96,13 @@ Java_net_homeip_ofn_androix_AndroiXLib_touchDown( JNIEnv* env, jobject thiz, jin
 {
     LOG("touchDown: mouse: %p x: %d y: %d", mouse, x, y);
     //androidRequestInputLock();
-//    LOG("touchDown: taking miEventQueueMutex");
-//    pthread_mutex_lock(Android->miEventQueueMutex);
+    LOG("touchDown: taking miEventQueueMutex");
+    pthread_mutex_lock(Android->miEventQueueMutex);
     androidCallbackTouchDown((void *)mouse, x, y);
-    wakeupFD();
     //androidReleaseInputLock();
-//    LOG("touchDown: releasing miEventQueueMutex");
-//    pthread_mutex_unlock(Android->miEventQueueMutex);
+    LOG("touchDown: releasing miEventQueueMutex");
+    pthread_mutex_unlock(Android->miEventQueueMutex);
+    wakeupFD();
 }
 
 void
@@ -110,12 +110,12 @@ Java_net_homeip_ofn_androix_AndroiXLib_touchUp( JNIEnv* env, jobject thiz, jint 
 {
     LOG("touchUp: mouse: %p x: %d y: %d", mouse, x, y);
     //androidRequestInputLock();
-//    LOG("touchUp: taking miEventQueueMutex");
-//    pthread_mutex_lock(Android->miEventQueueMutex);
+    LOG("touchUp: taking miEventQueueMutex");
+    pthread_mutex_lock(Android->miEventQueueMutex);
     androidCallbackTouchUp((void *)mouse, x, y);
-    wakeupFD();
     //androidReleaseInputLock();
-//    LOG("touchUp: releasing miEventQueueMutex");
-//    pthread_mutex_unlock(Android->miEventQueueMutex);
+    LOG("touchUp: releasing miEventQueueMutex");
+    pthread_mutex_unlock(Android->miEventQueueMutex);
+    wakeupFD();
 }
 
