@@ -69,12 +69,14 @@ static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
 
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
 
+/*
     if(!shadowAdd(pScreen, pScreen->devPrivate, androidShadowUpdate, NULL, 0, 0)) {
         LogMessage(X_ERROR, "[screen] AndroidCreateScreenResources: shadowAdd failed");
     }
+*/
 
 //    androidSetShadow(pScreen);
-//    androidSetInternalDamage(pScreen);
+    androidSetInternalDamage(pScreen);
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
 
 
@@ -170,32 +172,6 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 
     /* allocate */
 
-/*
-  if (!fbSetupScreen (pScreen,
-		      pScreenInfo->pfb,
-		      pScreenInfo->dwWidth, pScreenInfo->dwHeight,
-		      monitorResolution, monitorResolution,
-		      pScreenInfo->dwStride,
-		      pScreenInfo->dwBPP))
-    {
-      ErrorF ("winFinishScreenInitFB - fbSetupScreen failed\n");
-      return FALSE;
-    }
-*/
-
-/*
-    if (! fbScreenInit(pScreen,
-                priv->base,                 // pointer to screen bitmap
-                pScreen->width, pScreen->height,          // screen size in pixels
-                dpi, dpi,                         // dots per inch
-                priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
-                priv->bitsPerPixel))               // bits per pixel for screen
-    {
-        LogMessage(X_ERROR, "[startup] AndroidScreenInit: fbScreenInit failed");
-        return FALSE;
-    }
-*/
-
     if (!AndroidInitVisuals(pScreen)) {
         LogMessage(X_ERROR, "[screen] AndroidFinishScreenInitFB: AndroidInitVisuals failed");
         return FALSE;
@@ -206,11 +182,7 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
                 dpi, dpi,                         // dots per inch
-/*
-                priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
-*/
-/*                priv->bytes_per_line, */
-/*                (priv->bitsPerPixel)/8,   */
+/*              priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer   */
                 pScreen->width,
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
@@ -223,29 +195,11 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 
     pScreen->SaveScreen = AndroidSaveScreen;
 
-
-/*
-  if (!fbFinishScreenInit (pScreen,
-			   pScreenInfo->pfb,
-			   pScreenInfo->dwWidth, pScreenInfo->dwHeight,
-			   monitorResolution, monitorResolution,
-			   pScreenInfo->dwStride,
-			   pScreenInfo->dwBPP))
-    {
-      ErrorF ("winFinishScreenInitFB - fbFinishScreenInit failed\n");
-      return FALSE;
-    }
-*/
-
     if (!fbFinishScreenInit(pScreen,
                 priv->base,                 // pointer to screen bitmap
                 pScreen->width, pScreen->height,          // screen size in pixels
                 dpi, dpi,                         // dots per inch
-/*
-                priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer
-*/
-/*                (priv->bitsPerPixel)/8,   */
-/*                priv->bytes_per_line, */
+/*              priv->pitch/(priv->bitsPerPixel/8), // pixel width of framebuffer   */
                 pScreen->width,
                 priv->bitsPerPixel))               // bits per pixel for screen
     {
@@ -291,29 +245,13 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
 static Bool AndroidInitVisuals (ScreenPtr pScreen) {
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
-
-/*
-      if (!miSetVisualTypesAndMasks (pScreenInfo->dwDepth,
-				     TrueColorMask,
-				     pScreenPriv->dwBitsPerRGB,
-				     -1,
-				     pScreenPriv->dwRedMask,
-				     pScreenPriv->dwGreenMask,
-				     pScreenPriv->dwBlueMask))
-	{
-	  ErrorF ("winInitVisualsShadowGDI - miSetVisualTypesAndMasks "
-		  "failed\n");
-	  return FALSE;
-	}
-*/
-
-      if (!miSetVisualTypesAndMasks (priv->depth,
-				     TrueColorMask,         
-				     8,
-				     -1,
-				     priv->redMask,
-				     priv->greenMask,
-				     priv->blueMask))
+    if (!miSetVisualTypesAndMasks (priv->depth,
+                     TrueColorMask,         
+                     8,
+                     -1,
+                     priv->redMask,
+                     priv->greenMask,
+                     priv->blueMask))
 	{
         LogMessage(X_ERROR, "[screen] AndroidInitVisuals: miSetVisualTypesAndMasks failed");
         return FALSE;
