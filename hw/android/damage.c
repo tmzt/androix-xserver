@@ -33,88 +33,6 @@
 #include "android.h"
 #include "screen.h"
 #include "private.h"
-
-#if 0
-Bool
-androidScreenInitialize (KdScreenInfo *screen, AndroidScreenPriv *scrpriv)
-{
-    if (!screen->width || !screen->height)
-    {
-	screen->width = 800;    //1024;
-	screen->height = 480;   //768;
-	screen->rate = 72;
-    }
-
-    if (screen->width <= 0)
-	screen->width = 1;
-    if (screen->height <= 0)
-	screen->height = 1;
-    
-    if (!screen->fb.depth)
-	screen->fb.depth = 16;
-
-    if (screen->fb.depth <= 8)
-    {
-	screen->fb.visuals = ((1 << StaticGray) |
-			      (1 << GrayScale) |
-			      (1 << StaticColor) |
-			      (1 << PseudoColor) |
-			      (1 << TrueColor) |
-			      (1 << DirectColor));
-    }
-    else 
-    {
-	screen->fb.visuals = (1 << TrueColor);
-#define Mask(o,l)   (((1 << l) - 1) << o)
-	if (screen->fb.depth <= 15)
-	{
-	    screen->fb.depth = 15;
-	    screen->fb.bitsPerPixel = 16;
-	    screen->fb.redMask = Mask (10, 5);
-	    screen->fb.greenMask = Mask (5, 5);
-	    screen->fb.blueMask = Mask (0, 5);
-	}
-	else if (screen->fb.depth <= 16)
-	{
-	    screen->fb.depth = 16;
-	    screen->fb.bitsPerPixel = 16;
-	    screen->fb.redMask = Mask (11, 5);
-	    screen->fb.greenMask = Mask (5, 6);
-	    screen->fb.blueMask = Mask (0, 5);
-	}
-	else
-	{
-	    screen->fb.depth = 24;
-	    screen->fb.bitsPerPixel = 32;
-	    screen->fb.redMask = Mask (16, 8);
-	    screen->fb.greenMask = Mask (8, 8);
-	    screen->fb.blueMask = Mask (0, 8);
-	}
-    }
-
-    scrpriv->randr = screen->randr;
-
-    return androidMapFramebuffer (screen);
-}
-
-Bool
-androidScreenInit (KdScreenInfo *screen)
-{
-    AndroidScreenPriv *scrpriv;
-
-    scrpriv = calloc(1, sizeof (AndroidScreenPriv));
-    if (!scrpriv)
-	return FALSE;
-    screen->driver = scrpriv;
-    if (!androidScreenInitialize (screen, scrpriv))
-    {
-	screen->driver = 0;
-	free(scrpriv);
-	return FALSE;
-    }
-    return TRUE;
-}
-#endif
     
 void *
 androidWindowLinear (ScreenPtr	pScreen,
@@ -124,8 +42,6 @@ androidWindowLinear (ScreenPtr	pScreen,
 		   CARD32	*size,
 		   void		*closure)
 {
-//    KdScreenPriv(pScreen);
-//    AndroidPriv	    *priv = pScreenPriv->card->driver;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
 //    if (!pScreenPriv->enabled)
@@ -222,9 +138,6 @@ androidUnmapFramebuffer (KdScreenInfo *screen)
 Bool
 androidSetShadow (ScreenPtr pScreen)
 {
-//    KdScreenPriv(pScreen);
-//    KdScreenInfo	*screen = pScreenPriv->screen;
-//    AndroidScreenPriv	*scrpriv = screen->driver;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
     ShadowUpdateProc	update;
     ShadowWindowProc	window;
@@ -247,9 +160,6 @@ androidSetShadow (ScreenPtr pScreen)
 Bool
 androidRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
-//    KdScreenPriv(pScreen);
-//    KdScreenInfo	    *screen = pScreenPriv->screen;
-//    AndroidScreenPriv	    *scrpriv = screen->driver;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
     RRScreenSizePtr	    pSize;
@@ -391,15 +301,6 @@ androidCreateColormap (ColormapPtr pmap)
 Bool
 androidInitScreen (ScreenPtr pScreen)
 {
-    KdScreenPriv(pScreen);
-    KdScreenInfo	*screen = pScreenPriv->screen;
-
-#ifdef TOUCHSCREEN
-    KdTsPhyScreen = pScreen->myNum;
-#endif
-
-    androidInitNativeScreen(screen);
-
     pScreen->CreateColormap = androidCreateColormap;
     return TRUE;
 }
@@ -464,8 +365,6 @@ androidPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 void 
 androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 {
-//  KdScreenPriv(pScreen);
-//  KdScreenInfo *screen = pScreenPriv->screen;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
   
 //  Android_LOG("slow paint");
@@ -485,9 +384,6 @@ androidShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 static void
 androidInternalDamageRedisplay (ScreenPtr pScreen)
 {
-//  KdScreenPriv(pScreen);
-//  KdScreenInfo	*screen = pScreenPriv->screen;
-//  AndroidScreenPriv	*scrpriv = screen->driver;
   AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
   RegionPtr	 pRegion;
@@ -543,9 +439,6 @@ androidInternalDamageWakeupHandler (pointer data, int i, pointer LastSelectMask)
 Bool
 androidSetInternalDamage (ScreenPtr pScreen)
 {
-//  KdScreenPriv(pScreen);
-//  KdScreenInfo	*screen = pScreenPriv->screen;
-//  AndroidScreenPriv	*scrpriv = screen->driver;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
   PixmapPtr      pPixmap = NULL;
@@ -572,9 +465,6 @@ androidSetInternalDamage (ScreenPtr pScreen)
 void
 androidUnsetInternalDamage (ScreenPtr pScreen)
 {
-//  KdScreenPriv(pScreen);
-//  KdScreenInfo	*screen = pScreenPriv->screen;
-//  AndroidScreenPriv	*scrpriv = screen->driver;
     AndroidScreenPriv *priv = dixLookupPrivate(&(pScreen->devPrivates), androidScreenKey);
 
   PixmapPtr      pPixmap = NULL;
