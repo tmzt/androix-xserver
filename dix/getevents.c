@@ -1072,13 +1072,11 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     int valuators[MAX_VALUATORS];
 
     /* refuse events from disabled devices */
-LogMessage(X_INFO, "[getevents] pDev->enabled: %d", pDev->enabled);
     if (!pDev->enabled)
         return 0;
 
     ms = GetTimeInMillis(); /* before pointer update to help precision */
 
-LogMessage(X_INFO, "[getevents] scr: %p pDev->valuator: %p", scr, pDev->valuator);
     if (!scr || !pDev->valuator || first_valuator < 0 ||
         num_valuators > MAX_VALUATORS ||
         ((num_valuators + first_valuator) > pDev->valuator->numAxes) ||
