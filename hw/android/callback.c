@@ -1,12 +1,8 @@
 
 #include <jni.h>
-
-#ifdef HAVE_CONFIG_H
-#include <kdrive-config.h>
-#endif
-#include "private.h"
 #include <inputstr.h>
 #include <mi.h>
+#include "private.h"
 
 CARD32 lastEventTime = 0;
 EventList *androidEvents;
@@ -23,11 +19,8 @@ void androidCallbackKeyDown(void *kbdPtr, int keyCode) {
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: n: %d", n);
     for (i = 0; i < n; i++) {
         mieqEnqueue(kbd, (InternalEvent*)(androidEvents + i)->event);
-//        mieqProcessDeviceEvent(kbd, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackKeyDown: enqueueing event KeyPress %d", keyCode);
     };
-
-    //KdEnqueueKeyboardEvent (kbd, keyCode, FALSE);
 }
 
 void androidCallbackKeyUp(void *kbdPtr, int keyCode) {
@@ -42,11 +35,8 @@ void androidCallbackKeyUp(void *kbdPtr, int keyCode) {
     LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: n: %d", n);
     for (i = 0; i < n; i++) {
         mieqEnqueue(kbd, (InternalEvent*)(androidEvents + i)->event);
-//        mieqProcessDeviceEvent(kbd, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackKeyUp: enqueueing event KeyRelease %d", keyCode);
     };
-
-    //KdEnqueueKeyboardEvent (kbd, keyCode, TRUE);
 }
 
 void androidCallbackTouchDown(void *mousePtr, int x, int y) {
@@ -62,13 +52,11 @@ void androidCallbackTouchDown(void *mousePtr, int x, int y) {
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: n: %d", n);
     for (i = 0; i < n; i++) {
         mieqEnqueue(mouse, (InternalEvent*)(androidEvents + i)->event);
-//        mieqProcessDeviceEvent(mouse, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: enqueueing event MotionNotify %d %d %d", x, y, 1);
     };
     n = GetPointerEvents(androidEvents, mouse, ButtonPress, 1, POINTER_ABSOLUTE, 0, 2, v);
     for (i = 0; i < n; i++) {
         mieqEnqueue(mouse, (InternalEvent*)(androidEvents + i)->event);
-//        mieqProcessDeviceEvent(mouse, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: enqueueing event ButtonPress buttons: %d", 1);
     };
 
@@ -87,13 +75,11 @@ void androidCallbackTouchUp(void *mousePtr, int x, int y) {
     LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: n: %d", n);
     for (i = 0; i < n; i++) {
         mieqEnqueue(mouse, (InternalEvent*)(androidEvents + i)->event);
-//        mieqProcessDeviceEvent(mouse, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchUp: enqueueing event MotionNotify %d %d %d", x, y, 0);
     };
     n = GetPointerEvents(androidEvents, mouse, ButtonRelease, 1, POINTER_ABSOLUTE, 0, 2, v);
     for (i = 0; i < n; i++) {
         mieqEnqueue(mouse, (InternalEvent*)(androidEvents + i)->event);
-//        mieqProcessDeviceEvent(mouse, (InternalEvent*)(androidEvents + i)->event, NULL);
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: enqueueing event ButtonPress buttons: %d", 1);
     };
 
