@@ -655,8 +655,6 @@ dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
 AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
-AC_ARG_ENABLE(xfakelib,		AS_HELP_STRING([--enable-xfakelib], [Build the kdrive-based fakelib (default: auto)]), [XFAKELIB=$enableval], [XFAKELIB=auto])
-AC_ARG_ENABLE(xandroid,		AS_HELP_STRING([--enable-xandroid], [Build the library component of the AndroiX X server for Android(default: auto)]), [XANDROID=$enableval], [XANDROID=auto])
 AC_ARG_ENABLE(android,		AS_HELP_STRING([--enable-android], [Build the Android DDX]), [DDXANDROID=$enableval], [DDXANDROID=auto])
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 dnl kdrive options
@@ -974,7 +972,6 @@ if test "x$COMPOSITE" = xyes; then
 	COMPOSITE_INC='-I$(top_srcdir)/composite'
 fi
 
-MITSHM=no	# test if this is Android until we can fix shm
 AM_CONDITIONAL(MITSHM, [test "x$MITSHM" = xyes])
 if test "x$MITSHM" = xyes; then
 	AC_DEFINE(MITSHM, 1, [Support MIT-SHM extension])
@@ -1541,8 +1538,6 @@ dnl Xorg DDX
 AC_MSG_CHECKING([whether to build Xorg DDX])
 if test "x$XORG" = xauto; then
 	XORG="yes"
-	#FIXME check for android somehow
-	XORG="no"
 	case $host_os in
 		cygwin*) XORG="no" ;;
 		darwin*) XORG="no" ;;
@@ -1964,6 +1959,7 @@ AC_MSG_RESULT([$DDXANDROID])
 
 if test "x$DDXANDROID" = xyes; then
     AC_DEFINE(DDXANDROID, 1, [Build the Android DDX])
+    MITSHM=no	# test if this is Android until we can fix shm
 
     DDXANDROID_LIBS="$FB_LIB $FIXES_LIB $MI_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $DIX_LIB $MAIN_LIB $OS_LIB"
     AC_SUBST([DDXANDROID_LIBS])
@@ -2050,16 +2046,6 @@ if test "$KDRIVE" = yes; then
         AC_DEFINE(KDRIVEFBDEV, 1, [Build fbdev-based kdrive server])
     fi
 
-    if test "x$XFAKELIB" = xyes; then
-        XFAKELIB=yes
-        AC_DEFINE(XFAKELIB, 1, [Build kdrive-based fakelib server library])
-	AC_DEFINE(DDXOSVERRORF, 1, [Use Android logging facility])
-    fi
-
-    if test "x$XANDROID" = xyes; then
-	XANDROID=yes
-	AC_DEFINE(XANDROID, 1, [Build the library component of the AndroiX X server for Android])
-    fi
 
     PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
     if test "x$HAVE_TSLIB" = xno; then
@@ -2151,13 +2137,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LOCAL_LIBS="$MAIN_LIB $DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB $OS_LIB"
-
-    XFAKELIB_LOCAL_LIBS="$MAIN_LIB $DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $KDRIVE_PURE_LIBS"
-
     KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS $DLOPEN_LIBS $TSLIB_LIBS"
-    XFAKELIB_LIBS="$XFAKELIB_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS $DLOPEN_LIBS -llog"
-
-    XFAKELIB_CFLAGS="$CWARNFLAGS $XSERVER_CFLAGS $CORE_INCS $XEXT_INC $COMPOSITE_INC $DAMAGE_INC $FIXES_INC $XI_INC $MI_INC $MIEXT_SHADOW_INC $MIEXT_LAYER_INC $MIEXT_DAMAGE_INC $RENDER_INC $RANDR_INC $FB_INC -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
@@ -2167,10 +2147,7 @@ AC_SUBST([KDRIVE_PURE_INCS])
 AC_SUBST([KDRIVE_CFLAGS])
 AC_SUBST([KDRIVE_PURE_LIBS])
 AC_SUBST([KDRIVE_LOCAL_LIBS])
-AC_SUBST([XFAKELIB_LOCAL_LIBS])
 AC_SUBST([KDRIVE_LIBS])
-AC_SUBST([XFAKELIB_LIBS])
-AC_SUBST([XFAKELIB_CFLAGS])
 AM_CONDITIONAL(KDRIVELINUX, [test "x$KDRIVELINUX" = xyes])
 AM_CONDITIONAL(KDRIVE_EVDEV, [test "x$KDRIVE_EVDEV" = xyes])
 AM_CONDITIONAL(KDRIVE_KBD,   [test "x$KDRIVE_KBD" = xyes])
@@ -2180,7 +2157,6 @@ AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
-AM_CONDITIONAL(XFAKELIB, [test "x$KDRIVE" = xyes && test "x$XFAKELIB" = xyes])
 AM_CONDITIONAL(XANDROID, [test "x$KDRIVE" = xyes && test "x$XANDROID" = xyes])
 
 dnl and the rest of these are generic, so they're in config.h
@@ -2302,8 +2278,6 @@ hw/android/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ephyr/Makefile
 hw/kdrive/fake/Makefile
-hw/kdrive/fakelib/Makefile
-hw/kdrive/android/Makefile
 hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
