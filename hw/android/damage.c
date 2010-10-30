@@ -140,7 +140,7 @@ AndroidInternalDamageBlockHandler (pointer   data,
 {
   ScreenPtr pScreen = (ScreenPtr) data;
   
-  androidInternalDamageRedisplay (pScreen);
+  AndroidInternalDamageRedisplay (pScreen);
 }
 
 static void
@@ -163,8 +163,8 @@ AndroidSetInternalDamage (ScreenPtr pScreen)
 				   pScreen,
 				   pScreen);
   
-  if (!RegisterBlockAndWakeupHandlers (androidInternalDamageBlockHandler,
-				       androidInternalDamageWakeupHandler,
+  if (!RegisterBlockAndWakeupHandlers (AndroidInternalDamageBlockHandler,
+				       AndroidInternalDamageWakeupHandler,
 				       (pointer) pScreen))
     return FALSE;
   
@@ -186,8 +186,8 @@ AndroidUnsetInternalDamage (ScreenPtr pScreen)
   DamageUnregister (&pPixmap->drawable, priv->pDamage);
   DamageDestroy (priv->pDamage);
   
-  RemoveBlockAndWakeupHandlers (androidInternalDamageBlockHandler,
-				androidInternalDamageWakeupHandler,
+  RemoveBlockAndWakeupHandlers (AndroidInternalDamageBlockHandler,
+				AndroidInternalDamageWakeupHandler,
 				(pointer) pScreen);
 }
 
