@@ -53,8 +53,8 @@ static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
     res = priv->wrappedCreateScreenResources(pScreen);
 
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: before androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
-    //androidSetShadow(pScreen);
-    androidSetInternalDamage(pScreen);
+    //AndroidSetShadow(pScreen);
+    AndroidSetInternalDamage(pScreen);
     LogMessage(X_INFO, "[startup] AndroidCreateScreenResources: after androidSetInternalDamage: pScreen->devPrivate: %p", pScreen->devPrivate);
 
     //return res;
@@ -164,8 +164,8 @@ Bool AndroidFinishScreenInit (int index, ScreenPtr pScreen, int argc, char **arg
         return FALSE;
     }
 
-//    pScreen->BlockHandler = androidBlockHandler;
-//    pScreen->WakeupHandler = androidWakeupHandler;
+//    pScreen->BlockHandler = AndroidBlockHandler;
+//    pScreen->WakeupHandler = AndroidWakeupHandler;
 //    pScreen->blockData = pScreen;
 //    pScreen->wakeupData = pScreen;
 
@@ -218,19 +218,19 @@ static Bool AndroidInitVisuals (ScreenPtr pScreen) {
     return TRUE;
 }
 
-static Bool androidCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
+static Bool AndroidCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
 {
     return FALSE;
 }
 
-static void androidCrossScreen(ScreenPtr pScreen, Bool entering)
+static void AndroidCrossScreen(ScreenPtr pScreen, Bool entering)
 {
 }
 
 static miPointerScreenFuncRec androidPointerCursorFuncs =
 {
-    androidCursorOffScreen,
-    androidCrossScreen,
+    AndroidCursorOffScreen,
+    AndroidCrossScreen,
     miPointerWarpCursor
 };
 
