@@ -33,12 +33,6 @@
 /* Build for darwin with Quartz support */
 #undef DARWIN_WITH_QUARTZ
 
-/* Build kdrive-based fakelib server library */
-#undef XFAKELIB
-
-/* Build library component of the AndroiX X server for Android */
-#undef XANDROID
-
 /* Build the Android DDX */
 #undef DDXANDROID
 

@@ -6,14 +6,6 @@ if XFAKESERVER
 XFAKE_SUBDIRS = fake
 endif
 
-if XFAKELIB
-XFAKELIB_SUBDIRS = fakelib
-endif
-
-if XANDROID
-XANDROID_SUBDIRS = android 
-endif
-
 if XEPHYR
 XEPHYR_SUBDIRS = ephyr
 endif
@@ -25,9 +17,7 @@ endif
 SERVER_SUBDIRS = 		\
 	$(FBDEV_SUBDIRS)	\
 	$(XEPHYR_SUBDIRS)       \
-	$(XFAKE_SUBDIRS)	\
-	$(XFAKELIB_SUBDIRS)	\
-	$(XANDROID_SUBDIRS)
+	$(XFAKE_SUBDIRS)
 
 SUBDIRS =			\
 	src			\
