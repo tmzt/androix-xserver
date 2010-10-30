@@ -34,7 +34,11 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     LOG("local (android) fd: %d", Android->wakeupFD[1]);
     
     LOG("starting DIX");
+    #if 0
 	dix_main(1, &argv, &envp);
+    #else
+    main(1, &argv, &envp);
+    #endif
     LOG("returning from DIX (this shouldn't happen)");
 }
 
