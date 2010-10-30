@@ -162,21 +162,77 @@ androidMouseProc(DeviceIntPtr pDevice, int onoff)
 #undef NAXES
 }
 
+static int
+androidTrackballProc(DeviceIntPtr pDevice, int onoff)
+{
+#define NBUTTONS 3
+#define NAXES 2
+
+    BYTE map[NBUTTONS + 1];
+    DevicePtr pDev = (DevicePtr)pDevice;
+    Atom btn_labels[NBUTTONS] = {0};
+    Atom axes_labels[NAXES] = {0};
+
+    switch (onoff)
+    {
+    case DEVICE_INIT:
+	    map[1] = 1;
+	    map[2] = 2;
+	    map[3] = 3;
+
+            btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+            btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+            btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+
+            axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+            axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+
+	    InitPointerDeviceStruct(pDev, map, NBUTTONS, btn_labels,
+		(PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), NAXES, axes_labels);
+	    break;
+
+    case DEVICE_ON:
+	pDev->on = TRUE;
+    LogMessage(X_DEFAULT, "[events] initNativeTrackball: pDevice: %p", pDevice);
+    androidInitNativeTrackball(pDev);
+        break;
+
+    case DEVICE_OFF:
+	pDev->on = FALSE;
+	break;
+
+    case DEVICE_CLOSE:
+	break;
+    }
+    return Success;
+
+#undef NBUTTONS
+#undef NAXES
+}
+
+
 void
 InitInput(int argc, char *argv[])
 {
-    DeviceIntPtr p, k;
+    DeviceIntPtr p, t, k;
     Atom xiclass;
     LogMessage(X_DEFAULT, "[events] in InitInput");
 
     LogMessage(X_DEFAULT, "[events] InitInput: adding mouse proc %p (serverClient: %p)", androidMouseProc, serverClient);
     p = AddInputDevice(serverClient, androidMouseProc, TRUE);
+    LogMessage(X_DEFAULT, "[events] InitInput: adding trackball proc %p (serverClient: %p)", androidTrackballProc, serverClient);
+    t = AddInputDevice(serverClient, androidTrackballProc, TRUE);
     LogMessage(X_DEFAULT, "[events] InitInput: adding keybd proc %p (serverClient: %p)", androidKeybdProc, serverClient);
     k = AddInputDevice(serverClient, androidKeybdProc, TRUE);
-    LogMessage(X_DEFAULT, "[events] InitInput: registering pointer %p", p);
+
+    LogMessage(X_DEFAULT, "[events] InitInput: registering mouse %p", p);
     RegisterPointerDevice(p);
     xiclass = MakeAtom(XI_MOUSE, sizeof(XI_MOUSE) - 1, TRUE);
     AssignTypeAndName(p, xiclass, "Android mouse");
+    LogMessage(X_DEFAULT, "[events] InitInput: registering trackball %p", p);
+    RegisterPointerDevice(t);
+    xiclass = MakeAtom(XI_MOUSE, sizeof(XI_MOUSE) - 1, TRUE);
+    AssignTypeAndName(p, xiclass, "Android trackball");
     LogMessage(X_DEFAULT, "[events] InitInput: registering keyboard %p", p);
     RegisterKeyboardDevice(k);
     xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);

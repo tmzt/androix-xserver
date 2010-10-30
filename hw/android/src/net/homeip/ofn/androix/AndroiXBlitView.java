@@ -18,6 +18,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     private int mScreenPtr = 0;
     private int mKeyboardPtr = 0;
     private int mMousePtr = 0;
+    private int mTrackballPtr = 0;
     private Bitmap mBitmap = null;
     private ByteBuffer mBuf = null;
     private boolean mCreated = false;
@@ -56,6 +57,12 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     public int initNativeMouse(int mouse) {
         mMousePtr = mouse;   /* only on 32bit */
         Log.d("AndroiX", "[blitView] initNativeMouse: mouse: " + mouse);
+        return 0;
+    }
+
+    public int initNativeTrackball(int ball) {
+        mTrackballPtr = ball;   /* only on 32bit */
+        Log.d("AndroiX", "[blitView] initNativeTrackball: ball: " + ball);
         return 0;
     }
 
@@ -125,11 +132,19 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
         switch (event.getAction()) {
             case KeyEvent.ACTION_DOWN:
                 Log.d("AndroiX", "onKey: ACTION_DOWN keyCode: " + keyCode);
-                AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
+                if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+                    AndroiXService.lib.trackballPress(mTrackballPtr);
+                } else {
+                    AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
+                };
                 return true;
             case KeyEvent.ACTION_UP:
                 Log.d("AndroiX", "onKey: ACTION_UP keyCode: " + keyCode);
-                AndroiXService.lib.keyUp(mKeyboardPtr, keyCode);
+                if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+                    AndroiXService.lib.trackballRelease(mTrackballPtr);
+                } else {
+                    AndroiXService.lib.keyUp(mKeyboardPtr, keyCode);
+                };
                 return true;
             /* not handling multiple keypresses yet */
         };
@@ -152,6 +167,16 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
         };
         return false;
     }
+
+    /* OnTrackballEvent */
+
+    @Override
+    public boolean onTrackballEvent(MotionEvent event) {
+        if (mMousePtr == 0) { Log.d("AndroiX", "trackball not ready. ball: " + mTrackballPtr); return false; }
+        Log.d("AndroiX", "onTrackballEvent: x: " + event.getX() + " y: " + event.getY());
+        AndroiXService.lib.trackballNormalizedMotion(mTrackballPtr, event.getX(), event.getY());
+        return true;
+    }    
 
 }
 

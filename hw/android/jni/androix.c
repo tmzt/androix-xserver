@@ -84,3 +84,27 @@ Java_net_homeip_ofn_androix_AndroiXLib_touchUp( JNIEnv* env, jobject thiz, jint 
     wakeupFD();
 }
 
+void
+Java_net_homeip_ofn_androix_AndroiXLib_trackballNormalizedMotion( JNIEnv* env, jobject thiz, jint ball, jfloat x, jfloat y )
+{
+    LOG("trackballNormalizedMotion: ball: %p x: %d y: %d", ball, x, y);
+    androidCallbackTrackballNormalizedMotion((void *)ball, x, y);
+    wakeupFD();
+}
+
+void
+Java_net_homeip_ofn_androix_AndroiXLib_trackballPress( JNIEnv* env, jobject thiz, jint ball )
+{
+    LOG("trackballPress: ball: %p", ball);
+    androidCallbackTrackballPress((void *)ball);
+    wakeupFD();
+}
+
+void
+Java_net_homeip_ofn_androix_AndroiXLib_trackballRelease( JNIEnv* env, jobject thiz, jint ball )
+{
+    LOG("trackballPress: ball: %p", ball);
+    androidCallbackTrackballRelease((void *)ball);
+    wakeupFD();
+}
+

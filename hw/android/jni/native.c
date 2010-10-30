@@ -22,6 +22,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "../android.h"
 
+#define ANDROIDNATIVEABI 2    /* added trackball events */
+
+int androidGetNativeVersion(void) {
+    return ANDROIDNATIVEABI;
+}
 
 void androidInitNative(JavaVM *jvm) {
     JNIEnv *jni_env;
@@ -52,6 +57,7 @@ void androidInitNative(JavaVM *jvm) {
     Android->initNativeScreen = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeScreen", "(I)I");
     Android->initNativeKeyboard = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeKeyboard", "(I)I");
     Android->initNativeMouse = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeMouse", "(I)I");
+    Android->initNativeTrackball = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initNativeTrackball", "(I)I");
     Android->initFramebuffer = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "initFramebuffer", "(IIILjava/nio/ByteBuffer;)I");
     Android->draw = (*jni_env)->GetMethodID(jni_env, Android->AndroiXBlitView_class, "draw", "(IIII)V");
 
@@ -78,6 +84,13 @@ int androidInitNativeMouse(void *mouse) {
     (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
     LOG("[native] androidInitNativeMouse: mouse: %p", mouse);
     return (*jni_env)->CallIntMethod(jni_env, Android->blitview, Android->initNativeMouse, mouse);
+};
+
+int androidInitNativeTrackball(void *ball) {
+    JNIEnv *jni_env;
+    (*(Android->jvm))->AttachCurrentThread(Android->jvm, &jni_env, NULL);
+    LOG("[native] androidInitNativeTrackball: ball: %p", ball);
+    return (*jni_env)->CallIntMethod(jni_env, Android->blitview, Android->initNativeTrackball, ball);
 };
 
 int androidInitNativeFramebuffer(void *base, void **bufPtr, int width, int height, int depth) {

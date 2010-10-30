@@ -23,6 +23,7 @@ typedef struct _androidVars {
     jmethodID initNativeScreen;
     jmethodID initNativeKeyboard;
     jmethodID initNativeMouse;
+    jmethodID initNativeTrackball;
     jmethodID initFramebuffer;
     jmethodID draw;
 
@@ -46,5 +47,9 @@ void androidCallbackKeyDown(void *kbd, int keyCode);
 void androidCallbackKeyUp(void *kbd, int keyCode);
 void androidCallbackTouchDown(void *mouse, int x, int y);
 void androidCallbackTouchUp(void *mouse, int x, int y);
+void androidCallbackTrackballNormalizedMotion(void *ballPtr, double fx, double fy);
+void androidCallbackTrackballPress(void *ballPtr);
+void androidCallbackTrackballRelease(void *ballPtr);
+
 
 

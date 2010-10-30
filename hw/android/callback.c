@@ -7,6 +7,12 @@
 CARD32 lastEventTime = 0;
 EventList *androidEvents;
 
+#define ANDROIDCALLBACKABI 2    /* added trackball events */
+
+int androidCallbackGetVersion(void) {
+    return ANDROIDCALLBACKABI;
+}
+
 void androidCallbackKeyDown(void *kbdPtr, int keyCode) {
     int i, n;
     DeviceIntPtr kbd = kbdPtr;
@@ -83,5 +89,63 @@ void androidCallbackTouchUp(void *mousePtr, int x, int y) {
         LogMessage(X_DEFAULT, "[native] androidCallbackTouchDown: enqueueing event ButtonPress buttons: %d", 1);
     };
 
+}
+
+void androidCallbackTrackballNormalizedMotion(void *ballPtr, double fx, double fy) {
+    int i, n;
+    int x, y;
+
+    x = (int)floor(fx * 32768) % 37268;
+    y = (int)floor(fy * 32768) % 32768;  
+    
+    int v[3] = {x, y, 0};
+    DeviceIntPtr ball = ballPtr;
+
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballNormalizedMotion: ball: %p x: %d y: %d", ball, x, y);
+
+    GetEventList(&androidEvents);
+    n = GetPointerEvents(androidEvents, ball, MotionNotify, 1, POINTER_RELATIVE, 0, 2, v);
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballNormalizedMotion ball->enable: %d", ball->enabled);
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballNormalizedMotion: n: %d", n);
+    for (i = 0; i < n; i++) {
+        mieqEnqueue(ball, (InternalEvent*)(androidEvents + i)->event);
+        LogMessage(X_DEFAULT, "[native] androidCallbackTrackballNormalizedMotion: enqueueing event MotionNotify REL %d %d %d", x, y, 0);
+    };
+}
+
+void androidCallbackTrackballPress(void *ballPtr) {
+    int i, n;
+
+    int v[1] = {1};
+    DeviceIntPtr ball = ballPtr;
+
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballPress: ball: %p", ball);
+
+    GetEventList(&androidEvents);
+    n = GetPointerEvents(androidEvents, ball, ButtonPress, 1, POINTER_RELATIVE, 0, 1, v);
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballPress ball->enable: %d", ball->enabled);
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballPress: n: %d", n);
+    for (i = 0; i < n; i++) {
+        mieqEnqueue(ball, (InternalEvent*)(androidEvents + i)->event);
+        LogMessage(X_DEFAULT, "[native] androidCallbackTrackballPress: enqueueing event ButtonPress");
+    };
+};
+
+void androidCallbackTrackballRelease(void *ballPtr) {
+    int i, n;
+
+    int v[1] = {0};
+    DeviceIntPtr ball = ballPtr;
+
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballRelease: ball: %p", ball);
+
+    GetEventList(&androidEvents);
+    n = GetPointerEvents(androidEvents, ball, ButtonRelease, 1, POINTER_RELATIVE, 0, 1, v);
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballPress ball->enable: %d", ball->enabled);
+    LogMessage(X_DEFAULT, "[native] androidCallbackTrackballRelease: n: %d", n);
+    for (i = 0; i < n; i++) {
+        mieqEnqueue(ball, (InternalEvent*)(androidEvents + i)->event);
+        LogMessage(X_DEFAULT, "[native] androidCallbackTrackballRelease: enqueueing event ButtonRelease");
+    };
 }
 
