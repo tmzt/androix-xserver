@@ -134,6 +134,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
                 Log.d("AndroiX", "onKey: ACTION_DOWN keyCode: " + keyCode);
                 if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
                     AndroiXService.lib.trackballPress(mTrackballPtr);
+                    AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
                 } else {
                     AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
                 };
@@ -142,6 +143,8 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
                 Log.d("AndroiX", "onKey: ACTION_UP keyCode: " + keyCode);
                 if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
                     AndroiXService.lib.trackballRelease(mTrackballPtr);
+                    AndroiXService.lib.keyUp(mKeyboardPtr, keyCode);
+
                 } else {
                     AndroiXService.lib.keyUp(mKeyboardPtr, keyCode);
                 };
@@ -173,9 +176,21 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     @Override
     public boolean onTrackballEvent(MotionEvent event) {
         if (mMousePtr == 0) { Log.d("AndroiX", "trackball not ready. ball: " + mTrackballPtr); return false; }
-        Log.d("AndroiX", "onTrackballEvent: x: " + event.getX() + " y: " + event.getY());
-        AndroiXService.lib.trackballNormalizedMotion(mTrackballPtr, event.getX(), event.getY());
-        return true;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                Log.d("AndroiX", "onTrackballEvent: x: " + event.getX() + " y: " + event.getY());
+                AndroiXService.lib.trackballNormalizedMotion(mTrackballPtr, event.getX(), event.getY());
+                return true;
+            case MotionEvent.ACTION_DOWN:
+                Log.d("AndroiX", "onTrackballEvent: ACTION_DOWN");
+                AndroiXService.lib.trackballPress(mTrackballPtr);
+                return true;
+            case MotionEvent.ACTION_UP:
+                Log.d("AndroiX", "onTrackballEvent: ACTION_UP");
+                AndroiXService.lib.trackballRelease(mTrackballPtr);
+                return true;
+        };
+        return false;
     }    
 
 }

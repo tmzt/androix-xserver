@@ -95,9 +95,15 @@ void androidCallbackTrackballNormalizedMotion(void *ballPtr, double fx, double f
     int i, n;
     int x, y;
 
-    x = (int)floor(fx * 32768) % 37268;
-    y = (int)floor(fy * 32768) % 32768;  
-    
+//    x = (int)floor(fx * 800) % 800;
+//    y = (int)floor(fy * 480) % 480;  
+  
+//    x = (int)(pow((abs(fx) * 6.01), 2.5);
+//    y = (int)pow((abs(fy) * 6.01), 2.5);
+  
+    x = (int)((fx/2.5) * 250);
+    y = (int)((fy/2.5) * 200);
+
     int v[3] = {x, y, 0};
     DeviceIntPtr ball = ballPtr;
 
