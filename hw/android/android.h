@@ -10,6 +10,7 @@
 
 typedef struct _androidVars {
     pthread_mutex_t *miEventQueueMutex;
+    pthread_mutex_t *events_lock;
     JavaVM *jvm;
 
     /* Event wakeup socket */
