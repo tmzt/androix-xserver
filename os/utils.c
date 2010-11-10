@@ -1357,7 +1357,11 @@ Popen(char *command, char *type)
 	    }
 	    close(pdes[1]);
 	}
+	#ifndef ANDROID
 	execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+	#else
+	execl("/system/bin/sh", "sh", "-c", command, (char *)NULL);
+	#endif
 	_exit(127);
     }
 

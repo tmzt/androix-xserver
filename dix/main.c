@@ -117,7 +117,7 @@ Equipment Corporation.
 
 extern void Dispatch(void);
 
-#ifdef XQUARTZ
+#if defined(XQUARTZ) || defined(DDXANDROID)
 #include <pthread.h>
 
 BOOL serverInitComplete = FALSE;

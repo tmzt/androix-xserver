@@ -27,6 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern void *mousePtr;
 extern void *keyboardPtr;
+extern void *trackballPtr;
 
 int androidRequestInputLock() {
     LOG("[stub] androidRequestInputLock");
@@ -55,6 +56,12 @@ int androidInitNativeKeyboard(void *keyboard) {
 int androidInitNativeMouse(void *mouse) {
     LOG("[stub] androidInitNativeMouse: mouse: %p", mouse);
     mousePtr = mouse;
+    return 0;
+};
+
+int androidInitNativeTrackball(void *ball) {
+    LOG("[stub] androidInitNativeTrackball: ball: %p", ball);
+    trackballPtr = ball;
     return 0;
 };
 
