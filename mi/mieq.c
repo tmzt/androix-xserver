@@ -250,7 +250,7 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
 #ifdef DDXANDROID
-    pthread_mutex_lock(&miEventQueueMutex);
+    pthread_mutex_lock(Android->miEventQueueMutex);
 #endif
     EnqueueScreen(pDev) = pScreen;
     if (fromDIX)
@@ -259,7 +259,7 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 #ifdef DDXANDROID
-    pthread_mutex_unlock(&miEventQueueMutex);
+    pthread_mutex_unlock(Android->miEventQueueMutex);
 #endif
 }
 
