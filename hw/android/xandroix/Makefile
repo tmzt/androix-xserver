@@ -32,7 +32,7 @@ xandroix: xandroix.c stub.c ../obj/local/armeabi/libxandroid.a
 xandroixinputstress: xandroixinputstress.c inputstress.c ../obj/local/armeabi/libxandroid.a
 	${CC} -o xandroixinputstress xandroixinputstress.c inputstress.c ${CFLAGS} ${BUILD_LDFLAGS} ${LDFLAGS} ${LDFLAGS_STATIC} ${LOCAL_LDFLAGS}
 
-xandroixinputkeypress: xandroixinputkeypress.c inputstress.c ../obj/local/armeabi/libxandroid.a
+xandroixinputkeypress: xandroixinputkeypress.c inputstubs.c ../obj/local/armeabi/libxandroid.a
 	${CC} -o xandroixinputkeypress xandroixinputkeypress.c inputstress.c ${CFLAGS} ${BUILD_LDFLAGS} ${LDFLAGS} ${LDFLAGS_STATIC} ${LOCAL_LDFLAGS}
 
 libandroix.so: stub.c ../obj/local/armeabi/libxandroid.a

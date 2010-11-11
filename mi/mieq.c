@@ -249,10 +249,16 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 #ifdef XQUARTZ
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
+#ifdef DDXANDROID
+    pthread_mutex_lock(&miEventQueueMutex);
+#endif
     EnqueueScreen(pDev) = pScreen;
     if (fromDIX)
         DequeueScreen(pDev) = pScreen;
 #ifdef XQUARTZ
+    pthread_mutex_unlock(&miEventQueueMutex);
+#endif
+#ifdef DDXANDROID
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }
@@ -263,6 +269,9 @@ mieqSetHandler(int event, mieqHandler handler)
 #ifdef XQUARTZ
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
+#ifdef DDXANDROID
+    pthread_mutex_lock(Android->miEventQueueMutex);
+#endif
     if (handler && miEventQueue.handlers[event])
         ErrorF("[mi] mieq: warning: overriding existing handler %p with %p for "
                "event %d\n", miEventQueue.handlers[event], handler, event);
@@ -270,6 +279,9 @@ mieqSetHandler(int event, mieqHandler handler)
     miEventQueue.handlers[event] = handler;
 #ifdef XQUARTZ
     pthread_mutex_unlock(&miEventQueueMutex);
+#endif
+#ifdef DDXANDROID
+    pthread_mutex_unlock(Android->miEventQueueMutex);
 #endif
 }
 

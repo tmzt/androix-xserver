@@ -229,11 +229,11 @@ InitInput(int argc, char *argv[])
     RegisterPointerDevice(p);
     xiclass = MakeAtom(XI_MOUSE, sizeof(XI_MOUSE) - 1, TRUE);
     AssignTypeAndName(p, xiclass, "Android mouse");
-    LogMessage(X_DEFAULT, "[events] InitInput: registering trackball %p", p);
+    LogMessage(X_DEFAULT, "[events] InitInput: registering trackball %p", t);
     RegisterPointerDevice(t);
     xiclass = MakeAtom(XI_MOUSE, sizeof(XI_MOUSE) - 1, TRUE);
     AssignTypeAndName(t, xiclass, "Android trackball");
-    LogMessage(X_DEFAULT, "[events] InitInput: registering keyboard %p", p);
+    LogMessage(X_DEFAULT, "[events] InitInput: registering keyboard %p", k);
     RegisterKeyboardDevice(k);
     xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);
     AssignTypeAndName(k, xiclass, "Android keyboard");
