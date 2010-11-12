@@ -1,6 +1,6 @@
 /*
 
-Copyright 1993, 1998  The Open Group
+Copyright 2010 Timothy Meade
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -8,23 +8,18 @@ the above copyright notice appear in all copies and that both that
 copyright notice and this permission notice appear in supporting
 documentation.
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of The Open Group shall
-not be used in advertising or otherwise to promote the sale, use or
-other dealings in this Software without prior written authorization
-from The Open Group.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
+
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -54,6 +49,7 @@ from The Open Group.
 #include "xserver-properties.h"
 
 #include "android.h"
+#include "androidevents.h"
 
 Bool
 LegalModifier(unsigned int key, DeviceIntPtr pDev)
@@ -62,11 +58,59 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
 }
 
 void ProcessInputEvents(void) {
+    char buf[256];
     char nullbyte;
-	int x = sizeof(nullbyte);
+	int x = 0;
+
+    AndroidWireEvent *ev = NULL;
     
 //    TA_SERVER();
 
+    LogMessage(X_INFO, "[events] PIE reading event");
+
+#if 1
+    x = read(Android->eventFD[0], buf, sizeof(AndroidWireEvent));
+    if (x == sizeof(AndroidWireEvent)) {
+      //x = read(Android->eventFD[0], buf, sizeof(AndroidWireEvent));
+      LogMessage(X_INFO, "[events] read %d bytes (AndroidWireEvent %d)", x, sizeof(AndroidWireEvent));
+
+      ev = (AndroidWireEvent *)buf;
+
+      switch (ev->type) {
+            case ANDROIDWIREKEYDOWNEVENT:
+                androidCallbackKeyDown(ev->dev, ((AndroidWireKeyDownEvent *)ev)->keyCode);
+                break;
+            case ANDROIDWIREKEYUPEVENT:
+                androidCallbackKeyUp(ev->dev, ((AndroidWireKeyDownEvent *)ev)->keyCode);
+                break;
+            case ANDROIDWIRETOUCHDOWNEVENT:
+                androidCallbackTouchDown(ev->dev, ((AndroidWireTouchUpEvent *)ev)->x, ((AndroidWireTouchUpEvent *)ev)->y);
+                break;
+            case ANDROIDWIRETOUCHUPEVENT:
+                androidCallbackTouchUp(ev->dev, ((AndroidWireTouchUpEvent *)ev)->x, ((AndroidWireTouchUpEvent *)ev)->y);
+
+            case ANDROIDWIRETRACKBALLNORMALIZEDMOTIONEVENT:
+                androidCallbackTrackballNormalizedMotion(ev->dev, ((AndroidWireTrackballNormalizedMotionEvent *)ev)->x, ((AndroidWireTrackballNormalizedMotionEvent *)ev)->y);
+                break;
+            case ANDROIDWIRETRACKBALLPRESSEVENT:
+                androidCallbackTrackballPress(ev->dev);
+                break;
+            case ANDROIDWIRETRACKBALLRELEASEEVENT:
+                androidCallbackTrackballRelease(ev->dev);
+                break;
+            case ANDROIDWIRESYNCEVENT:
+                break;
+            default:
+                LogMessage(X_INFO, "[events] unhandled android wire event");
+                break;
+        };
+    }
+
+    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
+    mieqProcessInputEvents();
+    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
+
+#else
     LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
     mieqProcessInputEvents();
     LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
@@ -81,6 +125,7 @@ void ProcessInputEvents(void) {
 
     x = read(Android->wakeupFD[0], &nullbyte, 1);
     LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
+#endif
 }
 
 void DDXRingBell(int volume, int pitch, int duration)
@@ -237,8 +282,8 @@ InitInput(int argc, char *argv[])
     RegisterKeyboardDevice(k);
     xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);
     AssignTypeAndName(k, xiclass, "Android keyboard");
-    LogMessage(X_DEFAULT, "[events] InitInput: AddEnabledDevice wakeupFD[0]", Android->wakeupFD[0]);
-    AddEnabledDevice(Android->wakeupFD[0]);
+    LogMessage(X_DEFAULT, "[events] InitInput: AddEnabledDevice eventFD[0]", Android->eventFD[0]);
+    AddEnabledDevice(Android->eventFD[0]);
     (void)mieqInit();
 }
 
