@@ -32,8 +32,8 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     LOG("done.");
 
     LOG("creating event wakeup socket pair");
-//    socketpair(AF_UNIX, SOCK_STREAM, 0, Android->eventFD);
-    pipe(Android->eventFD);
+    socketpair(AF_UNIX, SOCK_STREAM, 0, Android->eventFD);
+//    pipe(Android->eventFD);
     LOG("remote (Xorg) fd: %d", Android->eventFD[0]);
     LOG("local (android) fd: %d", Android->eventFD[1]);
     
@@ -46,17 +46,26 @@ Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
     LOG("returning from DIX (this shouldn't happen)");
 }
 
-/*
+void androidSendEvent(AndroidWireEvent *ev, size_t len)
+{
+    AndroidWireEvent wire;
+    memcpy(&wire, ev, len);
+
+    int res;
+    LOG("writing event to eventFD");
+    res = write(Android->eventFD[1], &wire, sizeof(AndroidWireEvent));
+    LOG("wrote %d bytes", res);
+}
+
 void wakeupFD() {
     int res;
    	char nullbyte=0;
 	//  <daniels> oh, i ... er ... christ.
-    LOG("writing to wakeupFD");
-	res = write(Android->wakeupFD[1], &nullbyte, sizeof(nullbyte));
+    LOG("writing to eventFD");
+	res = write(Android->eventFD[1], &nullbyte, sizeof(nullbyte));
     //res = write(Android->wakeupFD[1], "X", 1);
     LOG("wrote %d bytes", res);
 }
-*/
 
 void
 Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint kbd, jint keyCode )
@@ -67,7 +76,8 @@ Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint 
     //LOG("keyDown TAKING LOCK");
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackKeyDown((void *)kbd, keyCode);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+    androidSendEvent((AndroidWireEvent *)&ev, sizeof(AndroidWireKeyDownEvent));
     //LOG("keyDown RELEASIN LOCK");
     //pthread_mutex_unlock(Android->events_lock);
     //wakeupFD();
@@ -82,10 +92,11 @@ Java_net_homeip_ofn_androix_AndroiXLib_keyUp( JNIEnv* env, jobject thiz, jint kb
     //LOG("keyUp TAKING LOCK");
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackKeyUp((void *)kbd, keyCode);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+    androidSendEvent((AndroidWireEvent *)&ev, sizeof(AndroidWireKeyUpEvent));
     //LOG("keyUp RELEASING LOCK");
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 
 void
@@ -96,9 +107,9 @@ Java_net_homeip_ofn_androix_AndroiXLib_touchDown( JNIEnv* env, jobject thiz, jin
     LOG("touchDown: mouse: %p x: %d y: %d", mouse, x, y);
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackTouchDown((void *)mouse, x, y);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 
 void
@@ -109,9 +120,9 @@ Java_net_homeip_ofn_androix_AndroiXLib_touchUp( JNIEnv* env, jobject thiz, jint 
     LOG("touchUp: mouse: %p x: %d y: %d", mouse, x, y);
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackTouchUp((void *)mouse, x, y);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 
 void
@@ -122,9 +133,9 @@ Java_net_homeip_ofn_androix_AndroiXLib_trackballNormalizedMotion( JNIEnv* env, j
     LOG("trackballNormalizedMotion: ball: %p x: %d y: %d", ball, x, y);
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackTrackballNormalizedMotion((void *)ball, x, y);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 
 void
@@ -135,9 +146,9 @@ Java_net_homeip_ofn_androix_AndroiXLib_trackballPress( JNIEnv* env, jobject thiz
     LOG("trackballPress: ball: %p", ball);
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackTrackballPress((void *)ball);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 
 void
@@ -148,8 +159,8 @@ Java_net_homeip_ofn_androix_AndroiXLib_trackballRelease( JNIEnv* env, jobject th
     LOG("trackballPress: ball: %p", ball);
     //pthread_mutex_lock(Android->events_lock);
     //androidCallbackTrackballRelease((void *)ball);
-    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
+//    write(Android->eventFD[1], &ev, sizeof(AndroidWireEvent));
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 

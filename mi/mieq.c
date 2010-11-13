@@ -79,6 +79,8 @@ typedef struct _EventQueue {
 
 static EventQueueRec miEventQueue;
 
+#undef DDXANDROID
+
 #ifdef XQUARTZ
 #include  <pthread.h>
 static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
