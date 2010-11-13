@@ -1,5 +1,4 @@
 
-#include <jni.h>
 #include <inputstr.h>
 #include <mi.h>
 #include "private.h"

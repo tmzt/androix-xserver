@@ -88,24 +88,31 @@ static void AndroidWireSigio(void) {
 
       switch (ev->type) {
             case ANDROIDWIREKEYDOWNEVENT:
+                if (ev->dev == NULL) ev->dev = Android->keyboardPtr;
                 androidCallbackKeyDown(ev->dev, ((AndroidWireKeyDownEvent *)ev)->keyCode);
                 break;
             case ANDROIDWIREKEYUPEVENT:
+                if (ev->dev == NULL) ev->dev = Android->keyboardPtr;
                 androidCallbackKeyUp(ev->dev, ((AndroidWireKeyDownEvent *)ev)->keyCode);
                 break;
             case ANDROIDWIRETOUCHDOWNEVENT:
+                if (ev->dev == NULL) ev->dev = Android->mousePtr;
                 androidCallbackTouchDown(ev->dev, ((AndroidWireTouchUpEvent *)ev)->x, ((AndroidWireTouchUpEvent *)ev)->y);
                 break;
             case ANDROIDWIRETOUCHUPEVENT:
+                if (ev->dev == NULL) ev->dev = Android->mousePtr;
                 androidCallbackTouchUp(ev->dev, ((AndroidWireTouchUpEvent *)ev)->x, ((AndroidWireTouchUpEvent *)ev)->y);
 
             case ANDROIDWIRETRACKBALLNORMALIZEDMOTIONEVENT:
+                if (ev->dev == NULL) ev->dev = Android->trackballPtr;
                 androidCallbackTrackballNormalizedMotion(ev->dev, ((AndroidWireTrackballNormalizedMotionEvent *)ev)->x, ((AndroidWireTrackballNormalizedMotionEvent *)ev)->y);
                 break;
             case ANDROIDWIRETRACKBALLPRESSEVENT:
+                if (ev->dev == NULL) ev->dev = Android->trackballPtr;
                 androidCallbackTrackballPress(ev->dev);
                 break;
             case ANDROIDWIRETRACKBALLRELEASEEVENT:
+                if (ev->dev == NULL) ev->dev = Android->trackballPtr;
                 androidCallbackTrackballRelease(ev->dev);
                 break;
             case ANDROIDWIRESYNCEVENT:

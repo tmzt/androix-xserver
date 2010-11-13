@@ -23,7 +23,9 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#ifdef ANDROID
 #include <sys/syslimits.h>
+#endif
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>

@@ -8,8 +8,6 @@
 #include "randrstr.h"
 #endif
 
-#include <jni.h>
-
 #include <inputstr.h>
 #include <damage.h>
 
@@ -27,7 +25,11 @@ typedef struct _androidScreenPriv {
     Bool(*wrappedCreateScreenResources)(ScreenPtr);
 
     CARD8	*base;
+#ifdef JNI
     jobject buf;
+#else
+    void *buf;
+#endif
     int		bytes_per_line;
     int dpi;
     int pitch;

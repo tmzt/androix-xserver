@@ -9,6 +9,8 @@ CFLAGS += -fPIC -DANDROID -I/opt/androix/usr/include -Dbionic -Dlinux -D__arm__
 LDFLAGS=-Wl,-T,/home/tmzt/src/android-ndk-4/android-ndk-r4b/build/prebuilt/linux-x86/arm-eabi-4.4.0/arm-eabi/lib/ldscripts/armelf.x -Wl,-rpath-link=/opt/androix/usr/lib -L/opt/androix/usr/lib -nostdlib -lc -lm -lz -llog
 LDFLAGS += -nostdlib -Wl,-dynamic-linker,/system/bin/linker -Wl,-z-nocopyreloc
 
+LDFLAGS_PROG= /opt/androix/usr/lib/crtbegin_static.o
+
 LDFLAGS_BIN += -L../obj/local/armeabi -landroix
 LDFLAGS_BIN += /opt/androix/usr/lib/crtbegin_dynamic.o
 
@@ -34,6 +36,12 @@ xandroixinputstress: xandroixinputstress.c inputstress.c ../obj/local/armeabi/li
 
 xandroixinputkeypress: xandroixinputkeypress.c inputstubs.c ../obj/local/armeabi/libxandroid.a
 	${CC} -o xandroixinputkeypress xandroixinputkeypress.c inputstress.c ${CFLAGS} ${BUILD_LDFLAGS} ${LDFLAGS} ${LDFLAGS_STATIC} ${LOCAL_LDFLAGS}
+
+# test driver program, execs xandroixinputgen
+inputgen: xandroixinputgen inputgen.c
+	${CC} -o inputgen inputgen.c ${CFLAGS} ${LDFLAGS} ${LDFLAGS_PROG}
+xandroixinputgen: xandroixinputgen.c inputstubs.c ../obj/local/armeabi/libxandroid.a
+	${CC} -o xandroixinputgen xandroixinputgen.c inputstubs.c ${CFLAGS} ${BUILD_LDFLAGS} ${LDFLAGS} ${LDFLAGS_STATIC} ${LOCAL_LDFLAGS}
 
 libandroix.so: stub.c ../obj/local/armeabi/libxandroid.a
 	$(CC) -o libandroix.so stub.c ${CFLAGS} ${LDFLAGS} ${LOCAL_LDFLAGS} ${LDFLAGS_LIB}

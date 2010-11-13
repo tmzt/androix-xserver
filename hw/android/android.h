@@ -20,25 +20,37 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-#include <jni.h>
 #include <pthread.h>
 
+#undef ANDROID
+#ifdef ANDROID
+#include <jni.h>
 #include "android/log.h"
+#define JNI
 
 #define LOG_TAG "AndroiX"
 //define LOG(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#else
+#define JavaVM void
+#define LOG(...) fprintf(stderr, __VA_ARGS__)
+#endif
 
 typedef struct _androidVars {
     pthread_mutex_t *miEventQueueMutex;
     pthread_mutex_t *events_lock;
-    JavaVM *jvm;
 
     /* Event wakeup socket */
 //    int wakeupFD[2];
     int eventFD[2];
 
+    void *mousePtr;
+    void *keyboardPtr;
+    void *trackballPtr;
+
     /* Global references established in androidInitNative */
+#ifdef JNI
+    JavaVM *jvm;
     jclass AndroiXService_class;
     jclass AndroiXBlitView_class;
     jobject blitview;
@@ -49,6 +61,7 @@ typedef struct _androidVars {
     jmethodID initNativeTrackball;
     jmethodID initFramebuffer;
     jmethodID draw;
+#endif
 
 } AndroidVars;
 

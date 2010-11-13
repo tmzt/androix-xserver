@@ -25,7 +25,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
-#include <sys/syslimits.h>
+/* #include <sys/syslimits.h> */
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
