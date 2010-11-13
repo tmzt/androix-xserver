@@ -66,19 +66,20 @@ static Bool AndroidCreateScreenResources(ScreenPtr pScreen) {
 Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     AndroidScreenPriv *priv;
 
-    LogMessage(X_INFO, "[startup] AndroidScreenInit called: index: %d pScreen: %p", index, pScreen);
+//    LogMessage(X_INFO, "[startup] AndroidScreenInit called: index: %d pScreen: %p", index, pScreen);
 
     if(!dixRegisterPrivateKey(androidScreenKey, PRIVATE_SCREEN, 0)) {
         LogMessage(X_ERROR, "[startup] AndroidScreenInit: failed to register screen key");
+        return FALSE;
     };
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: registered key: %p", androidScreenKey);
+//    LogMessage(X_INFO, "[startup] AndroidScreenInit: registered key: %p", androidScreenKey);
 
     priv = (AndroidScreenPriv *)malloc(sizeof(AndroidScreenPriv));
 
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: setting private: key: %p priv: %p", androidScreenKey, priv);
-    dixSetPrivate(&(pScreen->devPrivates), androidScreenKey, priv);
+//    LogMessage(X_INFO, "[startup] AndroidScreenInit: setting private: key: %p priv: %p", androidScreenKey, priv);
+    dixSetPrivate(&(pScreen)->devPrivates, androidScreenKey, priv);
 
-    LogMessage(X_INFO, "[startup] AndroidScreenInit: private set: %p (devPrivates: %p)", androidScreenKey, pScreen->devPrivates );
+//    LogMessage(X_INFO, "[startup] AndroidScreenInit: private set: %p (devPrivates: %p)", androidScreenKey, pScreen->devPrivates );
 
     pScreen->width = 800;
     pScreen->height = 480;

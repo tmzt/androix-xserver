@@ -1,4 +1,9 @@
+app_process
+inputgen
 xfakelibdynamic
 xandroix
 xandroixdynamic
-xandroixinputstree
+xandroixinputstress
+xandroixinputkeypress
+xandroixinputgen
+
