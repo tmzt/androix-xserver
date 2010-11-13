@@ -80,7 +80,7 @@ Java_net_homeip_ofn_androix_AndroiXLib_keyDown( JNIEnv* env, jobject thiz, jint 
     androidSendEvent((AndroidWireEvent *)&ev, sizeof(AndroidWireKeyDownEvent));
     //LOG("keyDown RELEASIN LOCK");
     //pthread_mutex_unlock(Android->events_lock);
-    //wakeupFD();
+    wakeupFD();
 }
 
 void

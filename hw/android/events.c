@@ -25,6 +25,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include <signal.h>
+#include <stdio.h>
+#include <sys/file.h>
+#include <fcntl.h>
+
 #include <X11/X.h>
 #include "mi.h"
 #include <X11/Xproto.h>
@@ -58,6 +63,12 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
 }
 
 void ProcessInputEvents(void) {
+    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
+    mieqProcessInputEvents();
+    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
+}
+
+static void AndroidWireSigio(void) {
     char buf[256];
     char nullbyte;
 	int x = 0;
@@ -66,9 +77,8 @@ void ProcessInputEvents(void) {
     
 //    TA_SERVER();
 
-    LogMessage(X_INFO, "[events] PIE reading event");
+    LogMessage(X_INFO, "[events] AndroidWireSigio reading event");
 
-#if 1
     x = read(Android->eventFD[0], buf, sizeof(AndroidWireEvent));
     if (x == sizeof(AndroidWireEvent)) {
       //x = read(Android->eventFD[0], buf, sizeof(AndroidWireEvent));
@@ -105,27 +115,6 @@ void ProcessInputEvents(void) {
                 break;
         };
     }
-
-    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
-    mieqProcessInputEvents();
-    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
-
-#else
-    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
-    mieqProcessInputEvents();
-    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
-
-/*
-    // Empty the signaling pipe
-    while (x == sizeof(nullbyte)) {
-      x = read(Android->wakeupFD[0], &nullbyte, sizeof(nullbyte));
-      LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
-    }
-*/
-
-    x = read(Android->wakeupFD[0], &nullbyte, 1);
-    LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
-#endif
 }
 
 void DDXRingBell(int volume, int pitch, int duration)
@@ -261,6 +250,9 @@ InitInput(int argc, char *argv[])
 {
     DeviceIntPtr p, t, k;
     Atom xiclass;
+    struct sigaction act;
+    sigset_t set;
+
     LogMessage(X_DEFAULT, "[events] in InitInput");
 
     LogMessage(X_DEFAULT, "[events] InitInput: adding mouse proc %p (serverClient: %p)", androidMouseProc, serverClient);
@@ -282,6 +274,22 @@ InitInput(int argc, char *argv[])
     RegisterKeyboardDevice(k);
     xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);
     AssignTypeAndName(k, xiclass, "Android keyboard");
+
+
+    /* enable wakeup on eventFD */
+    fcntl (Android->eventFD[0], F_SETOWN, getpid());
+    fcntl (Android->eventFD[0], F_SETFL, (fcntl(Android->eventFD[0], F_GETFL) | (O_ASYNC|O_NONBLOCK)));
+
+    memset (&act, 0, sizeof(act));
+    act.sa_handler = AndroidWireSigio;
+    sigemptyset (&act.sa_mask);
+    sigaddset (&act.sa_mask, SIGIO);
+    sigaddset (&act.sa_mask, SIGALRM);
+    sigaddset (&act.sa_mask, SIGVTALRM);
+    sigaction (SIGIO, &act, 0);
+    sigemptyset (&set);
+    sigprocmask (SIG_SETMASK, &set, 0);
+
     LogMessage(X_DEFAULT, "[events] InitInput: AddEnabledDevice eventFD[0]", Android->eventFD[0]);
     AddEnabledDevice(Android->eventFD[0]);
     (void)mieqInit();

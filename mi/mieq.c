@@ -79,8 +79,6 @@ typedef struct _EventQueue {
 
 static EventQueueRec miEventQueue;
 
-#undef DDXANDROID
-
 #ifdef XQUARTZ
 #include  <pthread.h>
 static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -98,10 +96,6 @@ static inline void wait_for_server_init(void) {
         pthread_mutex_unlock(&serverInitCompleteMutex);
     }
 }
-#endif
-#ifdef DDXANDROID
-#include  <pthread.h>
-#include "../hw/android/android.h"
 #endif
 
 Bool
@@ -161,11 +155,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     wait_for_server_init();
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: waiting on lock");
-    pthread_mutex_lock(Android->miEventQueueMutex);
-    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: acquired lock");
-#endif
 
     CHECKEVENT(e);
 
@@ -192,10 +181,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #ifdef XQUARTZ
             pthread_mutex_unlock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-            pthread_mutex_unlock(Android->miEventQueueMutex);
-            LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: releasing miEventQueueMutex");
-#endif
 	        return;
         }
         stuck = 0;
@@ -212,10 +197,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
             ErrorF("[mi] Running out of memory. Tossing event.\n");
 #ifdef XQUARTZ
             pthread_mutex_unlock(&miEventQueueMutex);
-#endif
-#ifdef DDXANDROID
-            pthread_mutex_unlock(Android->miEventQueueMutex);
-            LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: releasing miEventQueueMutex");
 #endif
             return;
         }
@@ -239,10 +220,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 #ifdef XQUARTZ
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-    pthread_mutex_unlock(Android->miEventQueueMutex);
-    LogMessage(X_DEFAULT, "[native] [mieq] mieqEnqueue: releasing miEventQueueMutex");
-#endif
 }
 
 void
@@ -251,17 +228,11 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 #ifdef XQUARTZ
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-    pthread_mutex_lock(Android->miEventQueueMutex);
-#endif
     EnqueueScreen(pDev) = pScreen;
     if (fromDIX)
         DequeueScreen(pDev) = pScreen;
 #ifdef XQUARTZ
     pthread_mutex_unlock(&miEventQueueMutex);
-#endif
-#ifdef DDXANDROID
-    pthread_mutex_unlock(Android->miEventQueueMutex);
 #endif
 }
 
@@ -271,9 +242,6 @@ mieqSetHandler(int event, mieqHandler handler)
 #ifdef XQUARTZ
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-    pthread_mutex_lock(Android->miEventQueueMutex);
-#endif
     if (handler && miEventQueue.handlers[event])
         ErrorF("[mi] mieq: warning: overriding existing handler %p with %p for "
                "event %d\n", miEventQueue.handlers[event], handler, event);
@@ -281,9 +249,6 @@ mieqSetHandler(int event, mieqHandler handler)
     miEventQueue.handlers[event] = handler;
 #ifdef XQUARTZ
     pthread_mutex_unlock(&miEventQueueMutex);
-#endif
-#ifdef DDXANDROID
-    pthread_mutex_unlock(Android->miEventQueueMutex);
 #endif
 }
 
@@ -468,10 +433,6 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-    LogMessage(X_DEFAULT, "[native] [mieq] mieqProcessInputEvents: acquiring miEventQueueMutex");
-    pthread_mutex_lock(Android->miEventQueueMutex);
-#endif
     
     while (miEventQueue.head != miEventQueue.tail) {
         e = &miEventQueue.events[miEventQueue.head];
@@ -498,10 +459,6 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-	    pthread_mutex_unlock(Android->miEventQueueMutex);
-        LogMessage(X_DEFAULT, "[native] [mieq] mieqProcessInputEvents: releasing miEventQueueMutex");
-#endif
 
         master  = (dev && !IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
 
@@ -524,17 +481,9 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
         pthread_mutex_lock(&miEventQueueMutex);
 #endif
-#ifdef DDXANDROID
-	    pthread_mutex_lock(Android->miEventQueueMutex);
-        LogMessage(X_DEFAULT, "[native] [mieq] mieqProcessInputEvents: taking lock miEventQueueMutex in while loop");
-#endif
     }
 #ifdef XQUARTZ
     pthread_mutex_unlock(&miEventQueueMutex);
-#endif
-#ifdef DDXANDROID
-    pthread_mutex_unlock(Android->miEventQueueMutex);
-    LogMessage(X_DEFAULT, "[native] [mieq] mieqProcessInputEvents: releasing miEventQueueMutex");
 #endif
 }
 
