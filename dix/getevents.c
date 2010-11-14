@@ -124,10 +124,23 @@ button_is_down(DeviceIntPtr pDev, int button, int type)
 void
 set_key_down(DeviceIntPtr pDev, int key_code, int type)
 {
+    int i; char s[18];
+    for (i=0; i<8; i++) { sprintf(s+(i*2), "%02x", pDev->key->down[i]); }
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (start): pDev->key->down: %s\n", s);
+    for (i=0; i<8; i++) { sprintf(s+(i*2), "%02x", pDev->key->postdown[i]); }
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (start): pDev->key->postdown: %s\n", s);
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (start): key_code: %d\n", key_code);
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (start): type: %d\n", type);
     if (type == KEY_PROCESSED)
         SetBit(pDev->key->down, key_code);
     else
         SetBit(pDev->key->postdown, key_code);
+    for (i=0; i<8; i++) { sprintf(s+(i*2), "%02x", pDev->key->down[i]); }
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (end): pDev->key->down: %s\n", s);
+    for (i=0; i<8; i++) { sprintf(s+(i*2), "%02x", pDev->key->postdown[i]); }
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (end): pDev->key->postdown: %s\n", s);
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (end): key_code: %d\n", key_code);
+    __android_log_print(4, "AndroiX", "[getevents] set_key_down (end): type: %d\n", type);
 }
 
 void
