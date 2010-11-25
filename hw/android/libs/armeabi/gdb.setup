@@ -1,0 +1,3 @@
+set solib-search-path /home/tmzt/src/xorg/xorg/xserver/hw/android/obj/local/armeabi
+directory /home/tmzt/src/android-ndk-4/android-ndk-r4b/build/platforms/android-8/arch-arm/usr/include
+directory /home/tmzt/src/xorg/xorg/xserver/hw/android/jni
