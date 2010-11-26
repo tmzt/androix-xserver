@@ -23,7 +23,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE	:= androix
 LOCAL_SRC_FILES := androix.c native.c locking.c
-LOCAL_LDFLAGS := -L/opt/androix/usr/lib -lz -llog -lXdmcp -lpixman-1 -lXfont -lXau -lfontenc -lfreetype
+# LOCAL_LDLIBS := -Wl,-rpath-link=$(SYSROOT)/usr/lib
+LOCAL_LDFLAGS := -L/opt/androix/usr/lib -Bstatic -lz -llog -lXdmcp -lpixman-1 -lXfont -lXau -lfontenc -lfreetype
 
 #LOCAL_STATIC_LIBRARIES := libxfakelib
 LOCAL_STATIC_LIBRARIES := libxandroid

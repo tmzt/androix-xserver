@@ -26,11 +26,13 @@ libxandroid_la_LIBADD = \
 	libddxandroid.la	\
 	@DDXANDROID_LIBS@
 
-libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) $(LDFLAGS)
+libxandroid_la_LDFLAGS = -nostdlib $(LD_EXPORT_SYMBOLS_FLAG) $(LDFLAGS) \
+	/opt/androix/usr/lib/crtbegin_dynamic.o
 
 libxandroid_la_DEPENDENCIES = \
     libfbcmap.la            \
 	libddxandroid.la		\
+	/opt/androix/usr/lib/crtbegin_dynamic.o	\
 	@DDXANDROID_LIBS@
 
 relink:

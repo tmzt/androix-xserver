@@ -22,7 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <pthread.h>
 
-#undef ANDROID
+//undef ANDROID
 #ifdef ANDROID
 #include <jni.h>
 #include "android/log.h"
