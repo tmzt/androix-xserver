@@ -1,9 +1,0 @@
-.*.swp
-usr/*
-obj/*
-objs/*
-bin/*
-libs/*
-local.properties
-tests/local.properties
-usrdata.zip
