@@ -40,7 +40,6 @@ includes code from quartzStartup.c, copyright 2001-2004 Torrey T. Lyons. All Rig
 #include "../androidevents.h"
 
 extern int dix_main(int argc, char *argv[], char *envp[]);
-static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t events_lock = PTHREAD_MUTEX_INITIALIZER;
 AndroidVars *Android;
 
@@ -153,7 +152,6 @@ int main(int argc, char *argv[], char *envp[])
     main_thread_id = pthread_self();
 
     Android = (AndroidVars *)calloc(sizeof(AndroidVars), 1);
-    Android->miEventQueueMutex = &miEventQueueMutex;
     Android->events_lock = &events_lock;
     androidInitNative(NULL);
 

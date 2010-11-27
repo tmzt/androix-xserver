@@ -5,13 +5,11 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 
-static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t events_lock = PTHREAD_MUTEX_INITIALIZER;
 
 jint
 JNI_OnLoad(JavaVM *jvm, void *reserved) {
     Android = (AndroidVars *)calloc(sizeof(AndroidVars), 1);
-    Android->miEventQueueMutex = &miEventQueueMutex;
     Android->events_lock = &events_lock;
     androidInitNative(jvm);
     return JNI_VERSION_1_4;
