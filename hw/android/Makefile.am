@@ -4,9 +4,8 @@ noinst_LTLIBRARIES = libddxandroid.la libfbcmap.la
 lib_LTLIBRARIES = libxandroid.la
 
 libddxandroid_la_CFLAGS = 	\
-	${DIX_CFLAGS}
-#	${DIX_CFLAGS}		\
-#	#-I/opt/androix/usr/include
+	${DIX_CFLAGS}		\
+	-I/opt/androix/usr/include
 
 libddxandroid_la_SOURCES =	\
 	startup.c		\
@@ -26,13 +25,12 @@ libxandroid_la_LIBADD = \
 	libddxandroid.la	\
 	@DDXANDROID_LIBS@
 
-libxandroid_la_LDFLAGS = -nostdlib $(LD_EXPORT_SYMBOLS_FLAG) $(LDFLAGS) \
-	/opt/androix/usr/lib/crtbegin_dynamic.o
+libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
+    -Wl,-z,nocopyreloc -llog
 
 libxandroid_la_DEPENDENCIES = \
     libfbcmap.la            \
 	libddxandroid.la		\
-	/opt/androix/usr/lib/crtbegin_dynamic.o	\
 	@DDXANDROID_LIBS@
 
 relink:

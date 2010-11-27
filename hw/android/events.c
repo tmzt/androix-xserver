@@ -1,6 +1,6 @@
 /*
 
-Copyright 2010 Timothy Meade
+Copyright 1993, 1998  The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -8,27 +8,27 @@ the above copyright notice appear in all copies and that both that
 copyright notice and this permission notice appear in supporting
 documentation.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
-AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name of The Open Group shall
+not be used in advertising or otherwise to promote the sale, use or
+other dealings in this Software without prior written authorization
+from The Open Group.
 
 */
-
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
-
-#include <signal.h>
-#include <stdio.h>
-#include <sys/file.h>
-#include <fcntl.h>
 
 #include <X11/X.h>
 #include "mi.h"
@@ -54,7 +54,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "xserver-properties.h"
 
 #include "android.h"
-#include "androidevents.h"
 
 Bool
 LegalModifier(unsigned int key, DeviceIntPtr pDev)
@@ -63,65 +62,25 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
 }
 
 void ProcessInputEvents(void) {
-    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
-    mieqProcessInputEvents();
-    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
-}
-
-static void AndroidWireSigio(void) {
-    char buf[256];
     char nullbyte;
-	int x = 0;
-
-    AndroidWireEvent *ev = NULL;
+	int x = sizeof(nullbyte);
     
 //    TA_SERVER();
 
-    LogMessage(X_INFO, "[events] AndroidWireSigio reading event");
+    LogMessage(X_INFO, "[events] before mieqProcessInputEvents();");
+    mieqProcessInputEvents();
+    LogMessage(X_INFO, "[events] after mieqProcessInputEvents();");
 
-    x = read(Android->eventFD[0], buf, sizeof(AndroidWireEvent));
-    if (x == sizeof(AndroidWireEvent)) {
-      //x = read(Android->eventFD[0], buf, sizeof(AndroidWireEvent));
-      LogMessage(X_INFO, "[events] read %d bytes (AndroidWireEvent %d)", x, sizeof(AndroidWireEvent));
-
-      ev = (AndroidWireEvent *)buf;
-
-      switch (ev->type) {
-            case ANDROIDWIREKEYDOWNEVENT:
-                if (ev->dev == NULL) ev->dev = Android->keyboardPtr;
-                androidCallbackKeyDown(ev->dev, ((AndroidWireKeyDownEvent *)ev)->keyCode);
-                break;
-            case ANDROIDWIREKEYUPEVENT:
-                if (ev->dev == NULL) ev->dev = Android->keyboardPtr;
-                androidCallbackKeyUp(ev->dev, ((AndroidWireKeyDownEvent *)ev)->keyCode);
-                break;
-            case ANDROIDWIRETOUCHDOWNEVENT:
-                if (ev->dev == NULL) ev->dev = Android->mousePtr;
-                androidCallbackTouchDown(ev->dev, ((AndroidWireTouchUpEvent *)ev)->x, ((AndroidWireTouchUpEvent *)ev)->y);
-                break;
-            case ANDROIDWIRETOUCHUPEVENT:
-                if (ev->dev == NULL) ev->dev = Android->mousePtr;
-                androidCallbackTouchUp(ev->dev, ((AndroidWireTouchUpEvent *)ev)->x, ((AndroidWireTouchUpEvent *)ev)->y);
-
-            case ANDROIDWIRETRACKBALLNORMALIZEDMOTIONEVENT:
-                if (ev->dev == NULL) ev->dev = Android->trackballPtr;
-                androidCallbackTrackballNormalizedMotion(ev->dev, ((AndroidWireTrackballNormalizedMotionEvent *)ev)->x, ((AndroidWireTrackballNormalizedMotionEvent *)ev)->y);
-                break;
-            case ANDROIDWIRETRACKBALLPRESSEVENT:
-                if (ev->dev == NULL) ev->dev = Android->trackballPtr;
-                androidCallbackTrackballPress(ev->dev);
-                break;
-            case ANDROIDWIRETRACKBALLRELEASEEVENT:
-                if (ev->dev == NULL) ev->dev = Android->trackballPtr;
-                androidCallbackTrackballRelease(ev->dev);
-                break;
-            case ANDROIDWIRESYNCEVENT:
-                break;
-            default:
-                LogMessage(X_INFO, "[events] unhandled android wire event");
-                break;
-        };
+/*
+    // Empty the signaling pipe
+    while (x == sizeof(nullbyte)) {
+      x = read(Android->wakeupFD[0], &nullbyte, sizeof(nullbyte));
+      LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
     }
+*/
+
+    x = read(Android->wakeupFD[0], &nullbyte, 1);
+    LogMessage(X_INFO, "[events] read %d bytes (nullbyte %c)", x, nullbyte);
 }
 
 void DDXRingBell(int volume, int pitch, int duration)
@@ -257,9 +216,6 @@ InitInput(int argc, char *argv[])
 {
     DeviceIntPtr p, t, k;
     Atom xiclass;
-    struct sigaction act;
-    sigset_t set;
-
     LogMessage(X_DEFAULT, "[events] in InitInput");
 
     LogMessage(X_DEFAULT, "[events] InitInput: adding mouse proc %p (serverClient: %p)", androidMouseProc, serverClient);
@@ -281,24 +237,8 @@ InitInput(int argc, char *argv[])
     RegisterKeyboardDevice(k);
     xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);
     AssignTypeAndName(k, xiclass, "Android keyboard");
-
-
-    /* enable wakeup on eventFD */
-    fcntl (Android->eventFD[0], F_SETOWN, getpid());
-    fcntl (Android->eventFD[0], F_SETFL, (fcntl(Android->eventFD[0], F_GETFL) | (O_ASYNC|O_NONBLOCK)));
-
-    memset (&act, 0, sizeof(act));
-    act.sa_handler = AndroidWireSigio;
-    sigemptyset (&act.sa_mask);
-    sigaddset (&act.sa_mask, SIGIO);
-    sigaddset (&act.sa_mask, SIGALRM);
-    sigaddset (&act.sa_mask, SIGVTALRM);
-    sigaction (SIGIO, &act, 0);
-    sigemptyset (&set);
-    sigprocmask (SIG_SETMASK, &set, 0);
-
-    LogMessage(X_DEFAULT, "[events] InitInput: AddEnabledDevice eventFD[0]", Android->eventFD[0]);
-    AddEnabledDevice(Android->eventFD[0]);
+    LogMessage(X_DEFAULT, "[events] InitInput: AddEnabledDevice wakeupFD[0]", Android->wakeupFD[0]);
+    AddEnabledDevice(Android->wakeupFD[0]);
     (void)mieqInit();
 }
 
