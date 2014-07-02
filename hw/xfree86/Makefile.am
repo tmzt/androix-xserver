@@ -1,4 +1,3 @@
-include $(top_srcdir)/cpprules.in
 
 if DRI
 DRI_SUBDIR = dri
@@ -28,17 +27,15 @@ if INT10MODULE
 INT10_SUBDIR = int10
 endif
 
-DOC_SUBDIR = doc
-
 SUBDIRS = common ddc i2c x86emu $(INT10_SUBDIR) fbdevhw os-support parser \
 	  ramdac shadowfb $(VBE_SUBDIR) $(VGAHW_SUBDIR) $(XAA_SUBDIR) \
-	  xf8_16bpp loader dixmods exa modes \
-	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
+	  loader dixmods exa modes \
+	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) doc man
 
 DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support \
                parser ramdac shadowfb vbe vgahw xaa \
-               xf8_16bpp loader dixmods dri dri2 exa modes \
-	       utils doc
+               loader dixmods dri dri2 exa modes \
+	       utils doc man
 
 bin_PROGRAMS = Xorg
 Xorg_SOURCES = xorg.c
@@ -77,7 +74,7 @@ Xorg_LDADD = $(MAIN_LIB) libxorg.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 BUILT_SOURCES = xorg.conf.example
-DISTCLEANFILES += xorg.conf.example xorg.conf.example.pre
+DISTCLEANFILES += xorg.conf.example
 EXTRA_DIST = xorgconf.cpp
 
 if SPECIAL_DTRACE_OBJECTS
@@ -108,13 +105,14 @@ if INSTALL_SETUID
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
 endif
 
-CPP_FILES_FLAGS = \
-	$(MANDEFS) \
-	-DDEFAULTFONTPATH="\"$(COMPILEDDEFAULTFONTPATH)\"" \
-	-DMODULEPATH=\"$(DEFAULT_MODULE_PATH)\"
+# Use variables from XORG_MANPAGE_SECTIONS and X Server configuration
+# Do not include manpages.am as values are not appropriate for rc files
+CONF_SUBSTS =	-e 's|__filemansuffix__|$(FILE_MAN_SUFFIX)|g' \
+		-e 's|MODULEPATH|$(DEFAULT_MODULE_PATH)|g' \
+		-e 's|DEFAULTFONTPATH|$(COMPILEDDEFAULTFONTPATH)|g'
+
+xorg.conf.example: xorgconf.cpp
+	$(AM_V_GEN)$(SED) $(CONF_SUBSTS) < $(srcdir)/xorgconf.cpp > $@
 
 relink:
 	$(AM_V_at)rm -f Xorg && $(MAKE) Xorg
-
-xorg.conf.example.pre: xorgconf.cpp
-	cp $(srcdir)/xorgconf.cpp $@

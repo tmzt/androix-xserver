@@ -1,2 +1,4 @@
-#		Add & Override for this directory and it's subdirectories
-Xserver.man
+*.html
+*.pdf
+*.ps
+*.txt

@@ -43,6 +43,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "windowstr.h"
 # include   "pixmapstr.h"
 # include   "inputstr.h"
+# include   "inpututils.h"
 # include   "mi.h"
 # include   "mipointer.h"
 # include   "scrnintstr.h"
@@ -64,7 +65,7 @@ in this Software without prior written authorization from The Open Group.
 #define DequeueScreen(dev) dev->spriteInfo->sprite->pDequeueScreen
 
 typedef struct _Event {
-    EventListPtr    events;
+    InternalEvent*  events;
     ScreenPtr	    pScreen;
     DeviceIntPtr    pDev; /* device this event _originated_ from */
 } EventRec, *EventPtr;
@@ -79,21 +80,22 @@ typedef struct _EventQueue {
 
 static EventQueueRec miEventQueue;
 
-#ifdef XQUARTZ
+#if defined(XQUARTZ) || defined(DDXANDROID)
+#define MIEQ_LOCKING
 #include  <pthread.h>
 static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 
-extern BOOL serverInitComplete;
-extern pthread_mutex_t serverInitCompleteMutex;
-extern pthread_cond_t serverInitCompleteCond;
+extern BOOL serverRunning;
+extern pthread_mutex_t serverRunningMutex;
+extern pthread_cond_t serverRunningCond;
 
 static inline void wait_for_server_init(void) {
     /* If the server hasn't finished initializing, wait for it... */
-    if(!serverInitComplete) {
-        pthread_mutex_lock(&serverInitCompleteMutex);
-        while(!serverInitComplete)
-            pthread_cond_wait(&serverInitCompleteCond, &serverInitCompleteMutex);
-        pthread_mutex_unlock(&serverInitCompleteMutex);
+    if(!serverRunning) {
+        pthread_mutex_lock(&serverRunningMutex);
+        while(!serverRunning)
+            pthread_cond_wait(&serverRunningCond, &serverRunningMutex);
+        pthread_mutex_unlock(&serverRunningMutex);
     }
 }
 #endif
@@ -111,7 +113,7 @@ mieqInit(void)
     for (i = 0; i < QUEUE_SIZE; i++)
     {
 	if (miEventQueue.events[i].events == NULL) {
-	    EventListPtr evlist = InitEventList(1);
+	    InternalEvent* evlist = InitEventList(1);
 	    if (!evlist)
 		FatalError("Could not allocate event queue.\n");
 	    miEventQueue.events[i].events = evlist;
@@ -146,17 +148,17 @@ void
 mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 {
     unsigned int           oldtail = miEventQueue.tail;
-    EventListPtr           evt;
+    InternalEvent*         evt;
     int                    isMotion = 0;
     int                    evlen;
     Time                   time;
 
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     wait_for_server_init();
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
 
-    CHECKEVENT(e);
+    verify_internal_event(e);
 
     /* avoid merging events from different devices */
     if (e->any.type == ET_Motion)
@@ -178,7 +180,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
                 xorg_backtrace();
                 stuck = 1;
             }
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
             pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 	        return;
@@ -188,21 +190,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 
     evlen = e->any.length;
     evt = miEventQueue.events[oldtail].events;
-    if (evt->evlen < evlen)
-    {
-        evt->evlen = evlen;
-        evt->event = realloc(evt->event, evt->evlen);
-        if (!evt->event)
-        {
-            ErrorF("[mi] Running out of memory. Tossing event.\n");
-#ifdef XQUARTZ
-            pthread_mutex_unlock(&miEventQueueMutex);
-#endif
-            return;
-        }
-    }
-
-    memcpy(evt->event, e, evlen);
+    memcpy(evt, e, evlen);
 
     time = e->any.time;
     /* Make sure that event times don't go backwards - this
@@ -211,13 +199,13 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
         miEventQueue.lastEventTime - time < 10000)
         e->any.time = miEventQueue.lastEventTime;
 
-    miEventQueue.lastEventTime = ((InternalEvent*)evt->event)->any.time;
+    miEventQueue.lastEventTime = evt->any.time;
     miEventQueue.events[oldtail].pScreen = pDev ? EnqueueScreen(pDev) : NULL;
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
     miEventQueue.tail = (oldtail + 1) % QUEUE_SIZE;
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }
@@ -225,13 +213,13 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 void
 mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 {
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
     EnqueueScreen(pDev) = pScreen;
     if (fromDIX)
         DequeueScreen(pDev) = pScreen;
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }
@@ -239,7 +227,7 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 void
 mieqSetHandler(int event, mieqHandler handler)
 {
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
     if (handler && miEventQueue.handlers[event])
@@ -247,7 +235,7 @@ mieqSetHandler(int event, mieqHandler handler)
                "event %d\n", miEventQueue.handlers[event], handler, event);
 
     miEventQueue.handlers[event] = handler;
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }
@@ -292,8 +280,8 @@ static void
 FixUpEventForMaster(DeviceIntPtr mdev, DeviceIntPtr sdev,
                     InternalEvent* original, InternalEvent *master)
 {
-    CHECKEVENT(original);
-    CHECKEVENT(master);
+    verify_internal_event(original);
+    verify_internal_event(master);
     /* Ensure chained button mappings, i.e. that the detail field is the
      * value of the mapped button on the SD, not the physical button */
     if (original->any.type == ET_ButtonPress ||
@@ -320,31 +308,39 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
 {
     DeviceIntPtr mdev;
     int len = original->any.length;
+    int type = original->any.type;
+    int mtype; /* which master type? */
 
-    CHECKEVENT(original);
+    verify_internal_event(original);
 
     /* ET_XQuartz has sdev == NULL */
-    if (!sdev || !sdev->u.master)
+    if (!sdev || IsMaster(sdev) || IsFloating(sdev))
         return NULL;
 
-    switch(original->any.type)
+#if XFreeXDGA
+    if (type == ET_DGAEvent)
+        type = original->dga_event.subtype;
+#endif
+
+    switch(type)
     {
         case ET_KeyPress:
         case ET_KeyRelease:
-            mdev = GetMaster(sdev, MASTER_KEYBOARD);
+            mtype = MASTER_KEYBOARD;
             break;
         case ET_ButtonPress:
         case ET_ButtonRelease:
         case ET_Motion:
         case ET_ProximityIn:
         case ET_ProximityOut:
-            mdev = GetMaster(sdev, MASTER_POINTER);
+            mtype = MASTER_POINTER;
             break;
         default:
-            mdev = sdev->u.master;
+            mtype = MASTER_ATTACHED;
             break;
     }
 
+    mdev = GetMaster(sdev, mtype);
     memcpy(copy, original, len);
     ChangeDeviceID(mdev, copy);
     FixUpEventForMaster(mdev, sdev, original, copy);
@@ -368,7 +364,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     DeviceIntPtr master;
     InternalEvent mevent; /* master event */
 
-    CHECKEVENT(event);
+    verify_internal_event(event);
 
     /* Custom event handler */
     handler = miEventQueue.handlers[event->any.type];
@@ -394,7 +390,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     master = CopyGetMasterEvent(dev, event, &mevent);
 
     if (master)
-        master->u.lastSlave = dev;
+        master->lastSlave = dev;
 
     /* If someone's registered a custom event handler, let them
      * steal it. */
@@ -404,7 +400,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         handler(screenNum, event, dev);
         /* Check for the SD's master in case the device got detached
          * during event processing */
-        if (master && dev->u.master)
+        if (master && !IsFloating(dev))
             handler(screenNum, &mevent, master);
     } else
     {
@@ -413,7 +409,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
 
         /* Check for the SD's master in case the device got detached
          * during event processing */
-        if (master && dev->u.master)
+        if (master && !IsFloating(dev))
             master->public.processInputProc(&mevent, master);
     }
 }
@@ -423,44 +419,29 @@ void
 mieqProcessInputEvents(void)
 {
     EventRec *e = NULL;
-    int evlen;
     ScreenPtr screen;
-    static InternalEvent *event = NULL;
-    static size_t event_size = 0;
+    static InternalEvent event;
     DeviceIntPtr dev = NULL,
                  master = NULL;
 
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
     
     while (miEventQueue.head != miEventQueue.tail) {
         e = &miEventQueue.events[miEventQueue.head];
 
-        evlen   = e->events->evlen;
-        if(evlen > event_size)
-          {
-            event = realloc(event, evlen);
-            event_size = evlen;
-          }
-
-
-        if (!event)
-            FatalError("[mi] No memory left for event processing.\n");
-
-        memcpy(event, e->events->event, evlen);
-
-
+        event = *e->events;
         dev     = e->pDev;
         screen  = e->pScreen;
 
         miEventQueue.head = (miEventQueue.head + 1) % QUEUE_SIZE;
 
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 
-        master  = (dev && !IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
+        master = (dev) ? GetMaster(dev, MASTER_ATTACHED) : NULL;
 
         if (screenIsSaved == SCREEN_SAVER_ON)
             dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
@@ -472,17 +453,17 @@ mieqProcessInputEvents(void)
             DPMSSet(serverClient, DPMSModeOn);
 #endif
 
-        mieqProcessDeviceEvent(dev, event, screen);
+        mieqProcessDeviceEvent(dev, &event, screen);
 
         /* Update the sprite now. Next event may be from different device. */
-        if (event->any.type == ET_Motion && master)
+        if (event.any.type == ET_Motion && master)
             miPointerUpdateSprite(dev);
 
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
         pthread_mutex_lock(&miEventQueueMutex);
 #endif
     }
-#ifdef XQUARTZ
+#ifdef MIEQ_LOCKING
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 }

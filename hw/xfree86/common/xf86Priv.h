@@ -114,7 +114,6 @@ extern _X_EXPORT void xf86AccessLeave(void);
 extern _X_EXPORT void xf86PostProbe(void);
 extern _X_EXPORT void xf86ClearEntityListForScreen(int scrnIndex);
 extern _X_EXPORT void xf86AddDevToEntity(int entityIndex, GDevPtr dev);
-extern _X_EXPORT void xf86PostScreenInit(void);
 
 /* xf86Config.c */
 
@@ -148,9 +147,6 @@ extern _X_EXPORT Bool xf86LoadModules(char **list, pointer *optlist);
 extern _X_EXPORT int xf86SetVerbosity(int verb);
 extern _X_EXPORT int xf86SetLogVerbosity(int verb);
 extern _X_EXPORT Bool xf86CallDriverProbe( struct _DriverRec * drv, Bool detect_only );
-
-/* xf86Xinput.c */
-extern _X_EXPORT EventList *xf86Events;
 
 #endif /* _NO_XF86_PROTOTYPES */
 

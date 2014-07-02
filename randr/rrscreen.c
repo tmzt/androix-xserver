@@ -910,11 +910,23 @@ ProcRRSetScreenConfig (ClientPtr client)
      */
     width = mode->mode.width;
     height = mode->mode.height;
+    if (width < pScrPriv->minWidth || pScrPriv->maxWidth < width) {
+	client->errorValue = width;
+	free(pData);
+	return BadValue;
+    }
+    if (height < pScrPriv->minHeight || pScrPriv->maxHeight < height) {
+	client->errorValue = height;
+	free(pData);
+	return BadValue;
+    }
+
     if (rotation & (RR_Rotate_90|RR_Rotate_270))
     {
 	width = mode->mode.height;
 	height = mode->mode.width;
     }
+
     if (width != pScreen->width || height != pScreen->height)
     {
 	int	c;

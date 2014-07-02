@@ -39,6 +39,7 @@
 #include "inputstr.h"
 #include "exevents.h" /* for button/axes labels */
 #include "xserver-properties.h"
+#include "inpututils.h"
 
 /* Peek the internal button mapping */
 static CARD8 const *g_winMouseButtonMap = NULL;
@@ -233,22 +234,18 @@ winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
 void
 winMouseButtonsSendEvent (int iEventType, int iButton)
 {
-  EventListPtr events;
-  int i, nevents;
+  ValuatorMask mask;
 
   if (g_winMouseButtonMap)
     iButton = g_winMouseButtonMap[iButton];
 
-  GetEventList(&events);
-  nevents = GetPointerEvents(events, g_pwinPointer, iEventType, iButton,
-			     POINTER_RELATIVE, 0, 0, NULL);
-
-  for (i = 0; i < nevents; i++)
-    mieqEnqueue(g_pwinPointer, (InternalEvent*)events[i].event);
+  valuator_mask_zero(&mask);
+  QueuePointerEvents(g_pwinPointer, iEventType, iButton,
+		     POINTER_RELATIVE, &mask);
 
 #if CYGDEBUG
-  ErrorF("winMouseButtonsSendEvent: iEventType: %d, iButton: %d, nEvents %d\n",
-          iEventType, iButton, nevents);
+  ErrorF("winMouseButtonsSendEvent: iEventType: %d, iButton: %d\n",
+          iEventType, iButton);
 #endif
 }
 
@@ -364,18 +361,15 @@ winMouseButtonsHandle (ScreenPtr pScreen,
  */
 void winEnqueueMotion(int x, int y)
 {
-  int i, nevents;
   int valuators[2];
-  EventListPtr events;
+  ValuatorMask mask;
 
-  miPointerSetPosition(g_pwinPointer, &x, &y);
+  miPointerSetPosition(g_pwinPointer, POINTER_RELATIVE, &x, &y);
   valuators[0] = x;
   valuators[1] = y;
 
-  GetEventList(&events);
-  nevents = GetPointerEvents(events, g_pwinPointer, MotionNotify, 0,
-			     POINTER_ABSOLUTE | POINTER_SCREEN, 0, 2, valuators);
+  valuator_mask_set_range(&mask, 0, 2, valuators);
+  QueuePointerEvents(g_pwinPointer, MotionNotify, 0,
+		     POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
 
-  for (i = 0; i < nevents; i++)
-    mieqEnqueue(g_pwinPointer, (InternalEvent*)events[i].event);
 }

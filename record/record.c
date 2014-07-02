@@ -77,6 +77,7 @@ typedef struct {
     char	bufCategory;	   /* category of protocol in replyBuffer */
     int		numBufBytes;	   /* number of bytes in replyBuffer */
     char	replyBuffer[REPLY_BUF_SIZE]; /* buffered recorded protocol */
+    int		inFlush;           /*  are we inside RecordFlushReplyBuffer */
 } RecordContextRec, *RecordContextPtr;
 
 /*  RecordMinorOpRec - to hold minor opcode selections for extension requests
@@ -245,8 +246,9 @@ RecordFlushReplyBuffer(
     int len2
 )
 {
-    if (!pContext->pRecordingClient || pContext->pRecordingClient->clientGone) 
+    if (!pContext->pRecordingClient || pContext->pRecordingClient->clientGone || pContext->inFlush)
 	return;
+    ++pContext->inFlush;
     if (pContext->numBufBytes)
 	WriteToClient(pContext->pRecordingClient, pContext->numBufBytes,
 		      (char *)pContext->replyBuffer);
@@ -255,6 +257,7 @@ RecordFlushReplyBuffer(
 	WriteToClient(pContext->pRecordingClient, len1, (char *)data1);
     if (len2)
 	WriteToClient(pContext->pRecordingClient, len2, (char *)data2);
+    --pContext->inFlush;
 } /* RecordFlushReplyBuffer */
 
 
@@ -818,9 +821,11 @@ RecordADeviceEvent(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 		/* TODO check return values */
 		if (IsMaster(pei->device))
 		{
-		    xEvent xE;
-		    EventToCore(pei->event, &xE);
-		    RecordSendProtocolEvents(pRCAP, pContext, &xE, 1);
+		    xEvent *core_events;
+		    EventToCore(pei->event, &core_events, &count);
+		    RecordSendProtocolEvents(pRCAP, pContext, core_events,
+                                             count);
+		    free(core_events);
 		}
 
 		EventToXI(pei->event, &xi_events, &count);
@@ -1938,6 +1943,7 @@ ProcRecordCreateContext(ClientPtr client)
     pContext->numBufBytes = 0;
     pContext->pBufClient = NULL;
     pContext->continuedReply = 0;
+    pContext->inFlush = 0;
 
     err = RecordRegisterClients(pContext, client,
 				(xRecordRegisterClientsReq *)stuff);
@@ -1952,7 +1958,7 @@ ProcRecordCreateContext(ClientPtr client)
     else
     {
 	RecordDeleteContext((pointer)pContext, pContext->id);
-	err = BadAlloc;
+	return BadAlloc;
     }
 bailout:
     free(pContext);

@@ -1,0 +1,2 @@
+set solib-search-path /home/webbb/androix/androix-xserver/hw/android/obj/local/armeabi
+directory /home/webbb/NDK/android-ndk-r5b/platforms/android-8/arch-arm/usr/include /home/webbb/androix/androix-xserver/hw/android/jni /home/webbb/NDK/android-ndk-r5b/sources/cxx-stl/system

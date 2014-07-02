@@ -395,7 +395,7 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
     i = 0;
     while (modes[i] != 0xffff)
 	i++;
-    block->VideoModePtr = malloc(sizeof(CARD16) * i + 1);
+    block->VideoModePtr = malloc(sizeof(CARD16) * (i + 1));
     memcpy(block->VideoModePtr, modes, sizeof(CARD16) * i);
     block->VideoModePtr[i] = 0xffff;
 
@@ -1027,6 +1027,11 @@ VBEInterpretPanelID(int scrnIndex, struct vbePanelID *data)
 
     if (pScrn->monitor->nHsync || pScrn->monitor->nVrefresh)
 	return;
+
+    if (data->hsize < 320 || data->vsize < 240) {
+	xf86DrvMsg(scrnIndex, X_INFO, "...which I refuse to believe\n");
+	return;
+    }
 
     mode = xf86CVTMode(data->hsize, data->vsize, PANEL_HZ, 1, 0);
 

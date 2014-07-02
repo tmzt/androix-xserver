@@ -98,7 +98,7 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
 	pExaPixmap->use_gpu_copy = FALSE;
 
 	if (w == 1 && h == 1) {
-	    pExaPixmap->sys_ptr = malloc((pPixmap->drawable.bitsPerPixel + 7) / 8);
+	    pExaPixmap->sys_ptr = malloc(paddedWidth);
 
 	    /* Set up damage tracking */
 	    pExaPixmap->pDamage = DamageCreate(exaDamageReport_mixed, NULL,
@@ -175,8 +175,10 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 	depth != pPixmap->drawable.depth ||
 	bitsPerPixel != pPixmap->drawable.bitsPerPixel) {
 	if (pExaPixmap->driverPriv) {
-            exaSetFbPitch(pExaScr, pExaPixmap,
-                          width, height, bitsPerPixel);
+	    if (devKind > 0)
+		pExaPixmap->fb_pitch = devKind;
+	    else
+		exaSetFbPitch(pExaScr, pExaPixmap, width, height, bitsPerPixel);
 
             exaSetAccelBlock(pExaScr, pExaPixmap,
                              width, height, bitsPerPixel);
@@ -187,8 +189,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 	if (has_gpu_copy && pExaPixmap->sys_ptr) {
 	    free(pExaPixmap->sys_ptr);
 	    pExaPixmap->sys_ptr = NULL;
-	    pExaPixmap->sys_pitch = devKind > 0 ? devKind :
-	        PixmapBytePad(width, depth);
+	    pExaPixmap->sys_pitch = PixmapBytePad(width, depth);
 	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
 	    DamageDestroy(pExaPixmap->pDamage);
 	    pExaPixmap->pDamage = NULL;

@@ -69,6 +69,8 @@ static int xprSetWindowLevel(
     
     if(XQuartzIsRootless)
         wc.window_level = normal_window_levels[level];
+    else if(XQuartzShieldingWindowLevel)
+        wc.window_level = XQuartzShieldingWindowLevel + 1;
     else
         wc.window_level = rooted_window_levels[level];
     
@@ -112,8 +114,8 @@ static int xprAttachTransient(WindowPtr pWinChild, WindowPtr pWinParent) {
 
 static int xprFrameDraw(
     WindowPtr pWin,
-    int class,
-    unsigned int attr,
+    xp_frame_class class,
+    xp_frame_attr attr,
     const BoxRec *outer,
     const BoxRec *inner,
     unsigned int title_len,

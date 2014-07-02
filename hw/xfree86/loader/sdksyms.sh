@@ -19,7 +19,6 @@ cat > sdksyms.c << EOF
 #include "mipict.h"
 #include "glyphstr.h"
 #include "picturestr.h"
-#include "renderedge.h"
 
 
 /* fb/Makefile.am -- module */
@@ -42,6 +41,9 @@ cat > sdksyms.c << EOF
 #include "damage.h"
 #include "damagestr.h"
 
+/* miext/sync/Makefile.am */
+#include "misync.h"
+#include "misyncstr.h"
 
 /* Xext/Makefile.am -- half is module, half is builtin */
 /*
@@ -51,6 +53,7 @@ cat > sdksyms.c << EOF
 #include "geext.h"
 #include "geint.h"
 #include "shmint.h"
+#include "syncsdk.h"
 #if XINERAMA
 # include "panoramiXsrv.h"
 # include "panoramiX.h"
@@ -209,12 +212,6 @@ cat > sdksyms.c << EOF
  */
 
 
-/* hw/xfree86/xf8_16bpp/Makefile.am -- module */
-/*
-#include "cfb8_16.h"
- */
-
-
 /* mi/Makefile.am */
 #include "micmap.h"
 #include "miline.h"
@@ -256,13 +253,13 @@ cat > sdksyms.c << EOF
 
 /* include/Makefile.am */
 #include "XIstubs.h"
-#include "bstore.h"
-#include "bstorestr.h"
+#include "Xprintf.h"
 #include "closestr.h"
 #include "closure.h"
 #include "colormap.h"
 #include "colormapst.h"
 #include "hotplug.h"
+#include "client.h"
 #include "cursor.h"
 #include "cursorstr.h"
 #include "dix.h"
@@ -363,13 +360,17 @@ BEGIN {
 	    # skip modifiers, if any
 	    $n ~ /^\*?(unsigned|const|volatile|struct)$/ ||
 	    # skip pointer
-	    $n ~ /\*$/)
+	    $n ~ /^[a-zA-Z0-9_]*\*$/)
 	    n++;
 
 	# type specifier may not be set, as in
 	#   extern _X_EXPORT unsigned name(...)
 	if ($n !~ /[^a-zA-Z0-9_]/)
 	    n++;
+
+	# go back if we are at the parameter list already
+	if ($n ~ /^[(]([^*].*)?$/)
+	    n--;
 
 	# match
 	#    extern _X_EXPORT type (* name[])(...)

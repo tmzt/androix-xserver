@@ -89,7 +89,11 @@ getDrawableDamageRef (DrawablePtr pDrawable)
 	ScreenPtr   pScreen = pDrawable->pScreen;
 
 	pPixmap = 0;
-	if (pScreen->GetWindowPixmap)
+	if (pScreen->GetWindowPixmap
+#ifdef ROOTLESS_WORKAROUND
+	    && ((WindowPtr)pDrawable)->viewable
+#endif
+	    )
 	    pPixmap = (*pScreen->GetWindowPixmap) ((WindowPtr)pDrawable);
 
 	if (!pPixmap)
@@ -115,54 +119,6 @@ getDrawableDamageRef (DrawablePtr pDrawable)
 #define winDamageRef(pWindow) \
     DamagePtr	*pPrev = (DamagePtr *) \
 	dixLookupPrivateAddr(&(pWindow)->devPrivates, damageWinPrivateKey)
-
-static void
-damageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
-{
-    BoxRec tmpBox;
-    RegionRec tmpRegion;
-    Bool was_empty;
-
-    switch (pDamage->damageLevel) {
-    case DamageReportRawRegion:
-	RegionUnion(&pDamage->damage, &pDamage->damage,
-			 pDamageRegion);
-	(*pDamage->damageReport) (pDamage, pDamageRegion, pDamage->closure);
-	break;
-    case DamageReportDeltaRegion:
-	RegionNull(&tmpRegion);
-	RegionSubtract(&tmpRegion, pDamageRegion, &pDamage->damage);
-	if (RegionNotEmpty(&tmpRegion)) {
-	    RegionUnion(&pDamage->damage, &pDamage->damage,
-			 pDamageRegion);
-	    (*pDamage->damageReport) (pDamage, &tmpRegion, pDamage->closure);
-	}
-	RegionUninit(&tmpRegion);
-	break;
-    case DamageReportBoundingBox:
-	tmpBox = *RegionExtents(&pDamage->damage);
-	RegionUnion(&pDamage->damage, &pDamage->damage,
-		     pDamageRegion);
-	if (!BOX_SAME (&tmpBox, RegionExtents(&pDamage->damage))) {
-	    (*pDamage->damageReport) (pDamage, &pDamage->damage,
-				      pDamage->closure);
-	}
-	break;
-    case DamageReportNonEmpty:
-	was_empty = !RegionNotEmpty(&pDamage->damage);
-	RegionUnion(&pDamage->damage, &pDamage->damage,
-		     pDamageRegion);
-	if (was_empty && RegionNotEmpty(&pDamage->damage)) {
-	    (*pDamage->damageReport) (pDamage, &pDamage->damage,
-				      pDamage->closure);
-	}
-	break;
-    case DamageReportNone:
-	RegionUnion(&pDamage->damage, &pDamage->damage,
-		     pDamageRegion);
-	break;
-    }
-}
 
 static void
 damageReportDamagePostRendering (DamagePtr pDamage, RegionPtr pOldDamage, RegionPtr pDamageRegion)
@@ -356,7 +312,7 @@ damageRegionAppend (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 	/* Report damage now, if desired. */
 	if (!pDamage->reportAfter) {
 	    if (pDamage->damageReport)
-		damageReportDamage (pDamage, pDamageRegion);
+		DamageReportDamage (pDamage, pDamageRegion);
 	    else
 		RegionUnion(&pDamage->damage,
 			 &pDamage->damage, pDamageRegion);
@@ -389,7 +345,7 @@ damageRegionProcessPending (DrawablePtr pDrawable)
 	if (pDamage->reportAfter) {
 	    /* It's possible that there is only interest in postRendering reporting. */
 	    if (pDamage->damageReport)
-		damageReportDamage (pDamage, &pDamage->pendingDamage);
+		DamageReportDamage (pDamage, &pDamage->pendingDamage);
 	    else
 		RegionUnion(&pDamage->damage, &pDamage->damage,
 			&pDamage->pendingDamage);
@@ -891,16 +847,6 @@ damageCopyArea(DrawablePtr   pSrc,
     RegionPtr ret;
     DAMAGE_GC_OP_PROLOGUE(pGC, pDst);
     
-    /* The driver will only call SourceValidate() when pSrc != pDst,
-     * but the software sprite (misprite.c) always need to know when a
-     * drawable is copied so it can remove the sprite. See #1030. */
-    if ((pSrc == pDst) && pSrc->pScreen->SourceValidate &&
-	pSrc->type == DRAWABLE_WINDOW &&
-	((WindowPtr)pSrc)->viewable)
-    {
-	(*pSrc->pScreen->SourceValidate) (pSrc, srcx, srcy, width, height);
-    }
-    
     if (checkGCDamage (pDst, pGC))
     {
 	BoxRec box;
@@ -936,16 +882,6 @@ damageCopyPlane(DrawablePtr	pSrc,
 {
     RegionPtr ret;
     DAMAGE_GC_OP_PROLOGUE(pGC, pDst);
-
-    /* The driver will only call SourceValidate() when pSrc != pDst,
-     * but the software sprite (misprite.c) always need to know when a
-     * drawable is copied so it can remove the sprite. See #1030. */
-    if ((pSrc == pDst) && pSrc->pScreen->SourceValidate &&
-	pSrc->type == DRAWABLE_WINDOW &&
-	((WindowPtr)pSrc)->viewable)
-    {
-        (*pSrc->pScreen->SourceValidate) (pSrc, srcx, srcy, width, height);
-    }
 
     if (checkGCDamage (pDst, pGC))
     {
@@ -2141,3 +2077,52 @@ DamageGetScreenFuncs (ScreenPtr pScreen)
     damageScrPriv(pScreen);
     return &pScrPriv->funcs;
 }
+
+void
+DamageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
+{
+    BoxRec tmpBox;
+    RegionRec tmpRegion;
+    Bool was_empty;
+
+    switch (pDamage->damageLevel) {
+    case DamageReportRawRegion:
+	RegionUnion(&pDamage->damage, &pDamage->damage,
+			 pDamageRegion);
+	(*pDamage->damageReport) (pDamage, pDamageRegion, pDamage->closure);
+	break;
+    case DamageReportDeltaRegion:
+	RegionNull(&tmpRegion);
+	RegionSubtract(&tmpRegion, pDamageRegion, &pDamage->damage);
+	if (RegionNotEmpty(&tmpRegion)) {
+	    RegionUnion(&pDamage->damage, &pDamage->damage,
+			 pDamageRegion);
+	    (*pDamage->damageReport) (pDamage, &tmpRegion, pDamage->closure);
+	}
+	RegionUninit(&tmpRegion);
+	break;
+    case DamageReportBoundingBox:
+	tmpBox = *RegionExtents(&pDamage->damage);
+	RegionUnion(&pDamage->damage, &pDamage->damage,
+		     pDamageRegion);
+	if (!BOX_SAME (&tmpBox, RegionExtents(&pDamage->damage))) {
+	    (*pDamage->damageReport) (pDamage, &pDamage->damage,
+				      pDamage->closure);
+	}
+	break;
+    case DamageReportNonEmpty:
+	was_empty = !RegionNotEmpty(&pDamage->damage);
+	RegionUnion(&pDamage->damage, &pDamage->damage,
+		     pDamageRegion);
+	if (was_empty && RegionNotEmpty(&pDamage->damage)) {
+	    (*pDamage->damageReport) (pDamage, &pDamage->damage,
+				      pDamage->closure);
+	}
+	break;
+    case DamageReportNone:
+	RegionUnion(&pDamage->damage, &pDamage->damage,
+		     pDamageRegion);
+	break;
+    }
+}
+

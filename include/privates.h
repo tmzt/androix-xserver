@@ -51,6 +51,7 @@ typedef enum {
     PRIVATE_GLYPH,
     PRIVATE_GLYPHSET,
     PRIVATE_PICTURE,
+    PRIVATE_SYNC_FENCE,
 
     /* last private type */
     PRIVATE_LAST,
@@ -194,7 +195,7 @@ dixGetScreenPrivate(PrivatePtr *privates, const DevScreenPrivateKey key, ScreenP
 static inline void
 dixSetScreenPrivate(PrivatePtr *privates, const DevScreenPrivateKey key, ScreenPtr pScreen, pointer val)
 {
-    return dixSetPrivate(privates, _dixGetScreenPrivateKey(key, pScreen), val);
+    dixSetPrivate(privates, _dixGetScreenPrivateKey(key, pScreen), val);
 }
 
 static inline pointer

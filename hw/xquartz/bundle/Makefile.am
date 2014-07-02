@@ -1,7 +1,7 @@
 include cpprules.in
 
 CPP_FILES_FLAGS = \
-	-DLAUNCHD_ID_PREFIX="$(LAUNCHD_ID_PREFIX)" \
+	-DBUNDLE_ID_PREFIX="$(BUNDLE_ID_PREFIX)" \
 	-DAPPLE_APPLICATION_NAME="$(APPLE_APPLICATION_NAME)"
 
 if XQUARTZ_SPARKLE
@@ -12,7 +12,9 @@ install-data-hook:
 	$(srcdir)/mk_bundke.sh $(srcdir) $(builddir) $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app install
 
 uninstall-hook:
-	$(RM) -rf $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app	
+	$(RM) -rf $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app/Contents/Resources
+	$(RM) -rf $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app/Contents/Info.plist
+	$(RM) -rf $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app/Contents/PkgInfo
 
 noinst_PRE = Info.plist.cpp
 noinst_DATA = $(noinst_PRE:plist.cpp=plist)

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,10 @@
 #endif
 
 #include "compint.h"
+
+#ifdef PANORAMIX
+#include "panoramiXsrv.h"
+#endif
 
 #ifdef COMPOSITE_DEBUG
 static int
@@ -160,8 +164,18 @@ compCheckRedirect (WindowPtr pWin)
     {
 	if (should)
 	    return compAllocPixmap (pWin);
+	else {
+	    ScreenPtr pScreen = pWin->drawable.pScreen;
+	    PixmapPtr pPixmap = (*pScreen->GetWindowPixmap) (pWin);
+	    compSetParentPixmap (pWin);
+	    compRestoreWindow (pWin, pPixmap);
+	    (*pScreen->DestroyPixmap) (pPixmap);
+	}
+    } else if (should) {
+	if (cw->update == CompositeRedirectAutomatic)
+	    pWin->redirectDraw = RedirectDrawAutomatic;
 	else
-	    compFreePixmap (pWin);
+	    pWin->redirectDraw = RedirectDrawManual;
     }
     return TRUE;
 }
@@ -172,16 +186,26 @@ updateOverlayWindow(ScreenPtr pScreen)
 	CompScreenPtr cs;
 	WindowPtr pWin; /* overlay window */
 	XID vlist[2];
+	int w = pScreen->width;
+	int h = pScreen->height;
+
+#ifdef PANORAMIX
+	if (!noPanoramiXExtension)
+	{
+	    w = PanoramiXPixWidth;
+	    h = PanoramiXPixHeight;
+	}
+#endif
 
 	cs = GetCompScreen(pScreen);
 	if ((pWin = cs->pOverlayWin) != NULL) {
-		if ((pWin->drawable.width == pScreen->width) &&
-			(pWin->drawable.height == pScreen->height))
+		if ((pWin->drawable.width == w) &&
+			(pWin->drawable.height == h))
 			return Success;
 
 		/* Let's resize the overlay window. */
-		vlist[0] = pScreen->width;
-		vlist[1] = pScreen->height;
+		vlist[0] = w;
+		vlist[1] = h;
 		return ConfigureWindow(pWin, CWWidth | CWHeight, vlist, wClient(pWin));
 	}
 
@@ -519,7 +543,7 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 	RegionTranslate(prgnSrc,
 			  pWin->drawable.x - ptOldOrg.x,
 			  pWin->drawable.y - ptOldOrg.y);
-	DamageRegionAppend(&pWin->drawable, prgnSrc);
+	DamageDamageRegion(&pWin->drawable, prgnSrc);
     }
     cs->CopyWindow = pScreen->CopyWindow;
     pScreen->CopyWindow = compCopyWindow;
@@ -569,8 +593,11 @@ compDestroyWindow (WindowPtr pWin)
     while ((csw = GetCompSubwindows (pWin)))
 	FreeResource (csw->clients->id, RT_NONE);
 
-    if (pWin->redirectDraw != RedirectDrawNone)
-	compFreePixmap (pWin);
+    if (pWin->redirectDraw != RedirectDrawNone) {
+	PixmapPtr pPixmap = (*pScreen->GetWindowPixmap) (pWin);
+	compSetParentPixmap (pWin);
+	(*pScreen->DestroyPixmap) (pPixmap);
+    }
     ret = (*pScreen->DestroyWindow) (pWin);
     cs->DestroyWindow = pScreen->DestroyWindow;
     pScreen->DestroyWindow = compDestroyWindow;
@@ -598,7 +625,7 @@ compSetRedirectBorderClip (WindowPtr pWin, RegionPtr pRegion)
     /*
      * Report that as damaged so it will be redrawn
      */
-    DamageRegionAppend(&pWin->drawable, &damage);
+    DamageDamageRegion(&pWin->drawable, &damage);
     RegionUninit(&damage);
     /*
      * Save the new border clip region
@@ -639,9 +666,10 @@ compWindowFormat (WindowPtr pWin)
 }
 
 static void
-compWindowUpdateAutomatic (WindowPtr pWin, ScreenPtr pScreen)
+compWindowUpdateAutomatic (WindowPtr pWin)
 {
     CompWindowPtr   cw = GetCompWindow (pWin);
+    ScreenPtr	    pScreen = pWin->drawable.pScreen;
     WindowPtr	    pParent = pWin->parent;
     PixmapPtr	    pSrcPixmap = (*pScreen->GetWindowPixmap) (pWin);
     PictFormatPtr   pSrcFormat = compWindowFormat (pWin);
@@ -664,7 +692,8 @@ compWindowUpdateAutomatic (WindowPtr pWin, ScreenPtr pScreen)
     /*
      * First move the region from window to screen coordinates
      */
-    RegionTranslate(pRegion, pWin->drawable.x, pWin->drawable.y);
+    RegionTranslate(pRegion,
+		      pWin->drawable.x, pWin->drawable.y);
 
     /*
      * Clip against the "real" border clip
@@ -674,7 +703,8 @@ compWindowUpdateAutomatic (WindowPtr pWin, ScreenPtr pScreen)
     /*
      * Now translate from screen to dest coordinates
      */
-    RegionTranslate(pRegion, -pParent->drawable.x, -pParent->drawable.y);
+    RegionTranslate(pRegion,
+		      -pParent->drawable.x, -pParent->drawable.y);
 
     /*
      * Clip the picture
@@ -703,26 +733,35 @@ compWindowUpdateAutomatic (WindowPtr pWin, ScreenPtr pScreen)
     DamageEmpty (cw->damage);
 }
 
-static int
-compWindowUpdateVisit(WindowPtr pWin, void *data)
+static void
+compPaintWindowToParent (WindowPtr pWin)
 {
+    compPaintChildrenToWindow (pWin);
+
     if (pWin->redirectDraw != RedirectDrawNone)
     {
-	CompWindowPtr cw = GetCompWindow(pWin);
+	CompWindowPtr	cw = GetCompWindow(pWin);
+
 	if (cw->damaged)
 	{
-	    compWindowUpdateAutomatic(pWin, data);
+	    compWindowUpdateAutomatic (pWin);
 	    cw->damaged = FALSE;
 	}
     }
-
-    return WT_WALKCHILDREN;
 }
 
 void
-compWindowUpdate (WindowPtr pWin)
+compPaintChildrenToWindow (WindowPtr pWin)
 {
-    TraverseTree(pWin, compWindowUpdateVisit, pWin->drawable.pScreen);
+    WindowPtr pChild;
+
+    if (!pWin->damagedDescendants)
+	return;
+
+    for (pChild = pWin->lastChild; pChild; pChild = pChild->prevSib)
+	compPaintWindowToParent (pChild);
+
+    pWin->damagedDescendants = FALSE;
 }
 
 WindowPtr

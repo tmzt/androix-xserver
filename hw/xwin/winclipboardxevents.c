@@ -636,11 +636,14 @@ winClipboardFlushXEvents (HWND hwnd,
 		case XNoMemory:
 		  ErrorF ("XNoMemory\n");
 		  break;
+		case XLocaleNotSupported:
+		  ErrorF ("XLocaleNotSupported\n");
+		  break;
 		case XConverterNotFound:
 		  ErrorF ("XConverterNotFound\n");
 		  break;
 		default:
-		  ErrorF ("%d", iReturn);
+		  ErrorF ("%d\n", iReturn);
 		  break;
 		}
 	      pszReturnData = malloc (1);
@@ -787,6 +790,9 @@ winClipboardFlushXEvents (HWND hwnd,
           break;
 
 	case PropertyNotify:
+	  break;
+
+	case MappingNotify:
 	  break;
 
 	default:

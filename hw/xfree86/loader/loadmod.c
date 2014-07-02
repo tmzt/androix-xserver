@@ -374,7 +374,7 @@ FreeSubdirs(const char **subdirs)
 
     if (subdirs) {
 	for (s = subdirs; *s; s++)
-	    free(*s);
+	    free((char *)*s);
 	free(subdirs);
     }
 }
@@ -406,22 +406,22 @@ FindModuleInSubdir(const char *dirpath, const char *module)
  
         snprintf(tmpBuf, PATH_MAX, "lib%s.so", module);
         if (strcmp(direntry->d_name, tmpBuf) == 0) {
-            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
-            sprintf(ret, "%s%s", dirpath, tmpBuf);
+            if (asprintf(&ret, "%s%s", dirpath, tmpBuf) == -1)
+		ret = NULL;
             break;
         }
 
         snprintf(tmpBuf, PATH_MAX, "%s_drv.so", module);
         if (strcmp(direntry->d_name, tmpBuf) == 0) {
-            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
-            sprintf(ret, "%s%s", dirpath, tmpBuf);
+            if (asprintf(&ret, "%s%s", dirpath, tmpBuf) == -1)
+		ret = NULL;
             break;
         }
 
         snprintf(tmpBuf, PATH_MAX, "%s.so", module);
         if (strcmp(direntry->d_name, tmpBuf) == 0) {
-            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
-            sprintf(ret, "%s%s", dirpath, tmpBuf);
+            if (asprintf(&ret, "%s%s", dirpath, tmpBuf) == -1)
+		ret = NULL;
             break;
         }
     }
@@ -483,19 +483,15 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
     char *fp;
     char **listing = NULL;
     char **save;
+    char **ret = NULL;
     int n = 0;
 
     if (!(pathlist = InitPathList(NULL)))
 	return NULL;
-    if (!(subdirs = InitSubdirs(subdirlist))) {
-	FreePathList(pathlist);
-	return NULL;
-    }
-    if (!(patterns = InitPatterns(patternlist))) {
-	FreePathList(pathlist);
-	FreeSubdirs(subdirs);
-	return NULL;
-    }
+    if (!(subdirs = InitSubdirs(subdirlist)))
+	goto bail;
+    if (!(patterns = InitPatterns(patternlist)))
+	goto bail;
 
     for (elem = pathlist; *elem; elem++) {
 	for (s = subdirs; *s; s++) {
@@ -529,18 +525,14 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
 				    save[n] = NULL;
 				    FreeStringList(save);
 				}
-				FreePathList(pathlist);
-				FreeSubdirs(subdirs);
-				FreePatterns(patterns);
-				return NULL;
+				closedir(d);
+				goto bail;
 			    }
 			    listing[n] = malloc(len + 1);
 			    if (!listing[n]) {
 				FreeStringList(listing);
-				FreePathList(pathlist);
-				FreeSubdirs(subdirs);
-				FreePatterns(patterns);
-				return NULL;
+				closedir(d);
+				goto bail;
 			    }
 			    strncpy(listing[n], dp->d_name + match[1].rm_so,
 				    len);
@@ -556,7 +548,13 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
     }
     if (listing)
 	listing[n] = NULL;
-    return listing;
+    ret = listing;
+
+bail:
+    FreePatterns(patterns);
+    FreeSubdirs(subdirs);
+    FreePathList(pathlist);
+    return ret;
 }
 
 void
@@ -933,16 +931,14 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
      * now check if the special data object <modulename>ModuleData is
      * present.
      */
-    p = malloc(strlen(name) + strlen("ModuleData") + 1);
-    if (!p) {
+    if (asprintf(&p, "%sModuleData", name) == -1) {
+	p = NULL;
 	if (errmaj)
 	    *errmaj = LDR_NOMEM;
 	if (errmin)
 	    *errmin = 0;
 	goto LoadModule_fail;
     }
-    strcpy(p, name);
-    strcat(p, "ModuleData");
     initdata = LoaderSymbol(p);
     if (initdata) {
 	ModuleSetupProc setup;

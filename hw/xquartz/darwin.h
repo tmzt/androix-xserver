@@ -32,9 +32,7 @@
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include <X11/extensions/XKB.h>
-#include <assert.h>
-
-#include "threadSafety.h"
+#include <asl.h>
 
 #include "darwinfb.h"
 
@@ -42,7 +40,6 @@
 void DarwinPrintBanner(void);
 int DarwinParseModifierList(const char *constmodifiers, int separatelr);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
-void xf86SetRootClip (ScreenPtr pScreen, int enable);
 
 #define SCREEN_PRIV(pScreen) ((DarwinFramebufferPtr) \
     dixLookupPrivate(&pScreen->devPrivates, darwinScreenKey))
@@ -57,7 +54,6 @@ extern io_connect_t     darwinParamConnect;
 extern int              darwinEventReadFD;
 extern int              darwinEventWriteFD;
 extern DeviceIntPtr     darwinPointer;
-extern DeviceIntPtr     darwinTabletCurrent;
 extern DeviceIntPtr     darwinTabletCursor;
 extern DeviceIntPtr     darwinTabletStylus;
 extern DeviceIntPtr     darwinTabletEraser;
@@ -77,16 +73,12 @@ extern int              darwinDesiredDepth;
 extern int              darwinMainScreenX;
 extern int              darwinMainScreenY;
 
-#define ENABLE_DEBUG_LOG 1
+// bundle-main.c
+extern char *bundle_id_prefix;
 
-#ifdef ENABLE_DEBUG_LOG
-extern FILE *debug_log_fp;
-#define DEBUG_LOG_NAME "x11-debug.txt"
-#define DEBUG_LOG(msg, args...) if (debug_log_fp) fprintf(debug_log_fp, "%s:%s:%s:%d " msg, threadSafetyID(pthread_self()), __FILE__, __FUNCTION__, __LINE__, ##args ); fflush(debug_log_fp);
-#else
-#define DEBUG_LOG(msg, args...) 
-#endif
+extern void debug_asl (const char *file, const char *function, int line, const char *fmt, ...) _X_ATTRIBUTE_PRINTF(4,5);
 
-#define TRACE() DEBUG_LOG("\n")
+#define DEBUG_LOG(msg, args...) debug_asl(__FILE__, __FUNCTION__, __LINE__, msg, ##args);
+#define TRACE() DEBUG_LOG("TRACE")
 
 #endif  /* _DARWIN_H */
