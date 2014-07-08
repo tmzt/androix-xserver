@@ -12,6 +12,10 @@ typedef struct _androidVars {
     pthread_mutex_t *events_lock;
     JavaVM *jvm;
 
+    /* Screen size */
+    int screenWidth;
+    int screenHeight;
+
     /* Event wakeup socket */
     int wakeupFD[2];
 
@@ -46,6 +50,7 @@ void androidDraw(int x, int y, int w, int h);
 void androidCallbackKeyDown(void *kbd, int keyCode);
 void androidCallbackKeyUp(void *kbd, int keyCode);
 void androidCallbackTouchDown(void *mouse, int x, int y);
+void androidCallbackTouchMove(void *mouse, int x, int y);
 void androidCallbackTouchUp(void *mouse, int x, int y);
 void androidCallbackTrackballNormalizedMotion(void *ballPtr, double fx, double fy);
 void androidCallbackTrackballPress(void *ballPtr);

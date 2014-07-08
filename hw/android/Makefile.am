@@ -23,6 +23,7 @@ libxandroid_la_SOURCES =
 libxandroid_la_LIBADD = \
     libfbcmap.la        \
 	libddxandroid.la	\
+	../../miext/sync/libsync.la      \
 	@DDXANDROID_LIBS@
 
 libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
@@ -31,6 +32,7 @@ libxandroid_la_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG) -Wl,--shared \
 libxandroid_la_DEPENDENCIES = \
     libfbcmap.la            \
 	libddxandroid.la		\
+	../../miext/sync/libsync.la      \
 	@DDXANDROID_LIBS@
 
 relink:

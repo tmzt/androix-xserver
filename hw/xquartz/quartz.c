@@ -62,6 +62,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
+#include <libkern/OSAtomic.h>
+#include <signal.h>
 
 #include <rootlessCommon.h>
 #include <Xplugin.h>
@@ -79,7 +81,8 @@ Bool XQuartzRootlessDefault = TRUE;
 Bool XQuartzIsRootless = TRUE;
 Bool XQuartzServerVisible = FALSE;
 Bool XQuartzFullscreenMenu = FALSE;
-Bool XQuartzUseSysBeep = FALSE;
+
+int32_t XQuartzShieldingWindowLevel = 0;
 
 /*
 ===========================================================================
@@ -143,6 +146,26 @@ void QuartzInitOutput(
     int argc,
     char **argv )
 {
+    /* For XQuartz, we want to just use the default signal handler to work better with CrashTracer */
+    signal(SIGSEGV, SIG_DFL);
+    signal(SIGILL, SIG_DFL);
+#ifdef SIGEMT
+    signal(SIGEMT, SIG_DFL);
+#endif
+    signal(SIGFPE, SIG_DFL);
+#ifdef SIGBUS
+    signal(SIGBUS, SIG_DFL);
+#endif
+#ifdef SIGSYS
+    signal(SIGSYS, SIG_DFL);
+#endif
+#ifdef SIGXCPU
+    signal(SIGXCPU, SIG_DFL);
+#endif
+#ifdef SIGXFSZ
+    signal(SIGXFSZ, SIG_DFL);
+#endif
+
     if (!RegisterBlockAndWakeupHandlers(QuartzBlockHandler,
                                         QuartzWakeupHandler,
                                         NULL))
@@ -216,8 +239,6 @@ void QuartzUpdateScreens(void) {
     AppleWMSetScreenOrigin(pRoot);
     pScreen->ResizeWindow(pRoot, x - sx, y - sy, width, height, NULL);
 
-    miPaintWindow(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
-
     /* <rdar://problem/7770779> pointer events are clipped to old display region after display reconfiguration
      * http://xquartz.macosforge.org/trac/ticket/346
      */
@@ -244,6 +265,46 @@ void QuartzUpdateScreens(void) {
     DeliverEvents(pRoot, &e, 1, NullWindow);
 
     quartzProcs->UpdateScreen(pScreen);
+
+    /* miPaintWindow needs to be called after RootlessUpdateScreenPixmap (from xprUpdateScreen) */
+    miPaintWindow(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
+
+    /* Tell RandR about the new size, so new connections get the correct info */
+    RRScreenSizeNotify(pScreen);
+}
+
+static void pokeActivityCallback(CFRunLoopTimerRef timer, void *info) {
+    UpdateSystemActivity(OverallAct);
+}
+
+static void QuartzScreenSaver(int state) {
+    static CFRunLoopTimerRef pokeActivityTimer = NULL;
+    static CFRunLoopTimerContext pokeActivityContext = { 0, NULL, NULL, NULL, NULL };
+    static OSSpinLock pokeActivitySpinLock = OS_SPINLOCK_INIT;
+
+    OSSpinLockLock(&pokeActivitySpinLock);
+
+    if(state) {
+        if(pokeActivityTimer == NULL)
+            goto QuartzScreenSaverEnd;
+
+        CFRunLoopTimerInvalidate(pokeActivityTimer);
+        CFRelease(pokeActivityTimer);
+        pokeActivityTimer = NULL;
+    } else {
+        if(pokeActivityTimer != NULL)
+            goto QuartzScreenSaverEnd;
+        
+        pokeActivityTimer = CFRunLoopTimerCreate(NULL, CFAbsoluteTimeGetCurrent(), 30, 0, 0, pokeActivityCallback, &pokeActivityContext);
+        if(pokeActivityTimer == NULL) {
+            ErrorF("Unable to create pokeActivityTimer.\n");
+            goto QuartzScreenSaverEnd;
+        }
+
+        CFRunLoopAddTimer(CFRunLoopGetMain(), pokeActivityTimer, kCFRunLoopCommonModes);
+    }
+QuartzScreenSaverEnd:
+    OSSpinLockUnlock(&pokeActivitySpinLock);
 }
 
 void QuartzShowFullscreen(int state) {
@@ -255,6 +316,8 @@ void QuartzShowFullscreen(int state) {
         ErrorF("QuartzShowFullscreen called while in rootless mode.\n");
         return;
     }
+    
+    QuartzScreenSaver(!state);
     
     if(XQuartzFullscreenVisible == state)
         return;
@@ -380,7 +443,7 @@ void QuartzSetRootClip(
 
     for (i = 0; i < screenInfo.numScreens; i++) {
         if (screenInfo.screens[i]) {
-            xf86SetRootClip(screenInfo.screens[i], enable);
+            SetRootClip(screenInfo.screens[i], enable);
         }
     }
 }
@@ -402,10 +465,24 @@ void QuartzSpaceChanged(uint32_t space_id) {
 void QuartzCopyDisplayIDs(ScreenPtr pScreen,
                           int displayCount, CGDirectDisplayID *displayIDs) {
     QuartzScreenPtr pQuartzScreen = QUARTZ_PRIV(pScreen);
-    int size = displayCount * sizeof(CGDirectDisplayID);
 
     free(pQuartzScreen->displayIDs);
-    pQuartzScreen->displayIDs = malloc(size);
-    memcpy(pQuartzScreen->displayIDs, displayIDs, size);
+    if(displayCount) {
+        size_t size = displayCount * sizeof(CGDirectDisplayID);
+        pQuartzScreen->displayIDs = malloc(size);
+        memcpy(pQuartzScreen->displayIDs, displayIDs, size);
+    } else {
+       pQuartzScreen->displayIDs = NULL;
+    }
     pQuartzScreen->displayCount = displayCount;
+}
+
+void NSBeep(void);
+void DDXRingBell(
+    int volume,         // volume is % of max
+    int pitch,          // pitch is Hz
+    int duration)       // duration is milliseconds
+{
+    if (volume)
+        NSBeep();
 }

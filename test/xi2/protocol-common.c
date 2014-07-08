@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include "extinit.h" /* for XInputExtensionInit */
 #include "exglobals.h"
-#include <glib.h>
+#include "xkbsrv.h" /* for XkbInitPrivates */
 
 #include "protocol-common.h"
 
@@ -133,7 +133,7 @@ void init_window(WindowPtr window, WindowPtr parent, int id)
     }
     window->parent = parent;
     window->optional = calloc(1, sizeof(WindowOptRec));
-    g_assert(window->optional);
+    assert(window->optional);
 }
 
 extern DevPrivateKeyRec miPointerScreenKeyRec;
@@ -170,7 +170,7 @@ void init_simple(void)
 
 void __wrap_WriteToClient(ClientPtr client, int len, void *data)
 {
-    g_assert(reply_handler != NULL);
+    assert(reply_handler != NULL);
 
     (*reply_handler)(client, len, data, userdata);
 }

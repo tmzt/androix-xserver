@@ -75,13 +75,14 @@ setup_int(xf86Int10InfoPtr pInt)
     if (pInt->Flags & SET_BIOS_SCRATCH)
 	SetResetBIOSVars(pInt, TRUE);
 #endif
-    return xf86BlockSIGIO();
+    OsBlockSignals();
+    return 0;
 }
 
 void
 finish_int(xf86Int10InfoPtr pInt, int sig)
 {
-    xf86UnblockSIGIO(sig);
+    OsReleaseSignals();
     pInt->ax = (CARD32) X86_EAX;
     pInt->bx = (CARD32) X86_EBX;
     pInt->cx = (CARD32) X86_ECX;
@@ -503,7 +504,7 @@ pciCfg1in(CARD16 addr, CARD32 *val)
     }
     if (addr == 0xCFC) {
 	pci_device_cfg_read_u32(pci_device_for_cfg_address(PciCfg1Addr),
-			val, PCI_OFFSET(PciCfg1Addr));
+			(uint32_t *)val, PCI_OFFSET(PciCfg1Addr));
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inl(%#lx) = %8.8lx\n", PciCfg1Addr, *val);
 	return 1;

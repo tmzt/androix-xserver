@@ -63,20 +63,10 @@ SOFTWARE.
 #include <execinfo.h>
 #endif
 
+#include "misc.h"
 
 #include "dixstruct.h"
 
-#ifndef PATH_MAX
-#ifdef MAXPATHLEN
-#define PATH_MAX MAXPATHLEN
-#else
-#define PATH_MAX 1024
-#endif
-#endif
-
-#if defined(__SCO__)
-#include <sys/wait.h>
-#endif
 
 #if !defined(SYSV) && !defined(WIN32) 
 #include <sys/resource.h>
@@ -209,7 +199,7 @@ OsInit(void)
 	dlinfo(RTLD_SELF, RTLD_DI_SETSIGNAL, &failure_signal);
 #endif
 
-#if !defined(__SCO__) && !defined(__CYGWIN__) && !defined(__UNIXWARE__)
+#if !defined(__CYGWIN__) 
 	fclose(stdin);
 	fclose(stdout);
 #endif

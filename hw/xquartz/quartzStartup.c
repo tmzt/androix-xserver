@@ -40,7 +40,6 @@
 #include "X11Controller.h"
 #include "darwin.h"
 #include "darwinEvents.h"
-#include "quartzAudio.h"
 #include "quartz.h"
 #include "opaque.h"
 #include "micmap.h"
@@ -57,6 +56,7 @@ struct arg {
     char **envp;
 };
 
+_X_NORETURN
 static void server_thread (void *arg) {
     struct arg args = *((struct arg *)arg);
     free(arg);
@@ -85,10 +85,7 @@ void QuartzInitServer(int argc, char **argv, char **envp) {
     args->argv = argv;
     args->envp = envp;
     
-    APPKIT_THREAD_ID = pthread_self();
-    SERVER_THREAD_ID = create_thread(server_thread, args);
-
-    if (!SERVER_THREAD_ID) {
+    if (!create_thread(server_thread, args)) {
         FatalError("can't create secondary thread\n");
     }
 }
@@ -116,9 +113,6 @@ int server_main(int argc, char **argv, char **envp) {
             exit(0);
         }
     }
-
-    /* Create the audio mutex */
-    QuartzAudioInit();
 
     X11ControllerMain(argc, argv, envp);
     exit(0);

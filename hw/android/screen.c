@@ -78,8 +78,9 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
 
     LogMessage(X_INFO, "[startup] AndroidScreenInit: private set: %p (devPrivates: %p)", androidScreenKey, pScreen->devPrivates );
 
-    pScreen->width = 800;
-    pScreen->height = 480;
+    pScreen->width = Android->screenWidth;
+    pScreen->height = Android->screenHeight;
+    LogMessage(X_INFO, "[startup] AndroidScreenInit: screen size (%dx%d)", pScreen->width, pScreen->height);
 
     priv->visuals = ((1 << TrueColor) | (1 << DirectColor));
 #define Mask(o,l)   (((1 << l) - 1) << o)
@@ -90,8 +91,7 @@ Bool AndroidScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     priv->greenMask = Mask (5, 6);
     priv->blueMask = Mask (0, 5);
 
-    //priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
-    priv->bytes_per_line = 1600;
+    priv->bytes_per_line = ((pScreen->width * priv->bitsPerPixel + 31) >> 5) << 2;
     priv->base = NULL;
     free(priv->base);
     priv->base = malloc (priv->bytes_per_line * pScreen->height);

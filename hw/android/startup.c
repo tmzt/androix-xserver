@@ -55,8 +55,6 @@ void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv ) {
     int i;
     int numFormats = 0;
 
-    LogMessage(X_INFO, "[startup] InitOutput called");
-
     pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
     pScreenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;

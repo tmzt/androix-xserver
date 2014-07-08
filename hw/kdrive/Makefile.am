@@ -24,7 +24,7 @@ SUBDIRS =			\
 	$(LINUX_SUBDIRS)	\
 	$(SERVER_SUBDIRS)
 
-DIST_SUBDIRS = fbdev ephyr src linux fake fakelib android
+DIST_SUBDIRS = fbdev ephyr src linux fake
 
 relink:
 	$(AM_V_at)for i in $(SERVER_SUBDIRS) ; do $(MAKE) -C $$i relink || exit 1 ; done

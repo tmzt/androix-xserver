@@ -371,6 +371,8 @@ done:
 	crtc->active = TRUE;
 	if (scrn->pScreen)
 	    xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
+	if (scrn->ModeSet)
+	    scrn->ModeSet(scrn);
     } else {
 	crtc->x = saved_x;
 	crtc->y = saved_y;
@@ -407,12 +409,16 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 void
 xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y)
 {
+    ScrnInfoPtr scrn = crtc->scrn;
+
     crtc->x = x;
     crtc->y = y;
     if (crtc->funcs->set_origin) {
 	if (!xf86CrtcRotate (crtc))
 	    return;
 	crtc->funcs->set_origin (crtc, x, y);
+	if (scrn->ModeSet)
+	    scrn->ModeSet(scrn);
     }
     else
 	xf86CrtcSetMode (crtc, &crtc->mode, crtc->rotation, x, y);
@@ -474,7 +480,6 @@ static void
 xf86OutputSetMonitor (xf86OutputPtr output)
 {
     char    *option_name;
-    static const char monitor_prefix[] = "monitor-";
     char    *monitor;
 
     if (!output->name)
@@ -484,11 +489,8 @@ xf86OutputSetMonitor (xf86OutputPtr output)
 
     output->options = xnfalloc (sizeof (xf86OutputOptions));
     memcpy (output->options, xf86OutputOptions, sizeof (xf86OutputOptions));
-    
-    option_name = xnfalloc (strlen (monitor_prefix) +
-			    strlen (output->name) + 1);
-    strcpy (option_name, monitor_prefix);
-    strcat (option_name, output->name);
+
+    XNFasprintf(&option_name, "monitor-%s", output->name);
     monitor = xf86findOptionValue (output->scrn->options, option_name);
     if (!monitor)
 	monitor = output->name;
@@ -660,13 +662,11 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
 Bool
 xf86OutputRename (xf86OutputPtr output, const char *name)
 {
-    int	    len = strlen(name) + 1;
-    char    *newname = malloc(len);
+    char    *newname = strdup(name);
     
     if (!newname)
 	return FALSE;	/* so sorry... */
     
-    strcpy (newname, name);
     if (output->name && output->name != (char *) (output + 1))
 	free(output->name);
     output->name = newname;
@@ -1512,7 +1512,6 @@ struct det_monrec_parameter {
 static void handle_detailed_monrec(struct detailed_monitor_section *det_mon,
                                    void *data)
 {
-    enum { sync_config, sync_edid, sync_default };
     struct det_monrec_parameter *p;
     p = (struct det_monrec_parameter *)data;
 
@@ -1566,7 +1565,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	int		    min_clock = 0;
 	int		    max_clock = 0;
 	double		    clock;
-	Bool		    add_default_modes = xf86ReturnOptValBool(output->options, OPTION_DEFAULT_MODES, TRUE);
+	Bool		    add_default_modes;
 	Bool		    debug_modes = config->debug_modes ||
 					  xf86Initialising;
 	enum det_monrec_source sync_source = sync_default;
@@ -1612,6 +1611,14 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	}
 	
 	output_modes = (*output->funcs->get_modes) (output);
+
+	/*
+	 * If the user has a preference, respect it.
+	 * Otherwise, don't second-guess the driver.
+	 */
+	if (!xf86GetOptValBool(output->options, OPTION_DEFAULT_MODES,
+			       &add_default_modes))
+	    add_default_modes = (output_modes == NULL);
 	
 	edid_monitor = output->MonInfo;
 	
@@ -2347,6 +2354,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     int			i = scrn->scrnIndex;
     Bool have_outputs = TRUE;
     Bool ret;
+    Bool success = FALSE;
 
     /* Set up the device options */
     config->options = xnfalloc (sizeof (xf86DeviceOptions));
@@ -2405,11 +2413,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
      * Set the position of each output
      */
     if (!xf86InitialOutputPositions (scrn, modes))
-    {
-	free(crtcs);
-	free(modes);
-	return FALSE;
-    }
+	goto bailout;
 
     /*
      * Set initial panning of each output
@@ -2420,11 +2424,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
      * Assign CRTCs to fit output configuration
      */
     if (have_outputs && !xf86PickCrtcs (scrn, crtcs, modes, 0, width, height))
-    {
-	free(crtcs);
-	free(modes);
-	return FALSE;
-    }
+	goto bailout;
     
     /* XXX override xf86 common frame computation code */
     
@@ -2501,7 +2501,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
      * Make sure the configuration isn't too small.
      */
     if (width < config->minWidth || height < config->minHeight)
-	return FALSE;
+	goto bailout;
 
     /*
      * Limit the crtc config to virtual[XY] if the driver can't grow the
@@ -2524,10 +2524,12 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 				   xf86CVTMode(width, height, 60, 0, 0));
     }
 
-    
+    success = TRUE;
+ bailout:
     free(crtcs);
     free(modes);
-    return TRUE;
+    free(enabled);
+    return success;
 }
 
 /*
@@ -2894,6 +2896,8 @@ xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
     }
     if (pScrn->pScreen)
 	xf86_crtc_notify(pScrn->pScreen);
+    if (pScrn->ModeSet)
+	pScrn->ModeSet(pScrn);
 }
 
 #ifdef RANDR_12_INTERFACE
@@ -2964,10 +2968,11 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
     int			size;
 #endif
     
-    if (output->MonInfo != NULL)
-	free(output->MonInfo);
+    free(output->MonInfo);
     
     output->MonInfo = edid_mon;
+    output->mm_width = 0;
+    output->mm_height = 0;
 
     if (debug_modes) {
 	xf86DrvMsg(scrn->scrnIndex, X_INFO, "EDID for output %s\n",

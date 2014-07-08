@@ -28,6 +28,7 @@ typedef enum _AndroidWireEventType {
     ANDROIDWIREKEYDOWNEVENT,
     ANDROIDWIREKEYUPEVENT,
     ANDROIDWIRETOUCHDOWNEVENT,
+    ANDROIDWIRETOUCHMOVEEVENT,
     ANDROIDWIRETOUCHUPEVENT,
     ANDROIDWIRETRACKBALLNORMALIZEDMOTIONEVENT,
     ANDROIDWIRETRACKBALLPRESSEVENT,
@@ -66,6 +67,14 @@ typedef struct _AndroidWireTouchDownEvent {
     double x;
     double y;
 } AndroidWireTouchDownEvent;
+
+typedef struct _AndroidWireTouchMoveEvent {
+    AndroidWireEventType type;
+    long ts;
+    void *dev;
+    double x;
+    double y;
+} AndroidWireTouchMoveEvent;
 
 typedef struct _AndroidWireTouchUpEvent {
     AndroidWireEventType type;

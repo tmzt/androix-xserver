@@ -330,7 +330,7 @@ InstallSignalHandlers(void)
 void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
-  int                    i, j, k, scr_index;
+  int                    i, j, k, scr_index, was_blocked = 0;
   char                   **modulelist;
   pointer                *optionlist;
   Pix24Flags		 screenpix24, pix24;
@@ -536,8 +536,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     for (i = 0; i < xf86NumScreens; i++) {
       if (xf86Screens[i]->name == NULL) {
-	xf86Screens[i]->name = xnfalloc(strlen("screen") + 10 + 1);
-	sprintf(xf86Screens[i]->name, "screen%d", i);
+	XNFasprintf(&xf86Screens[i]->name, "screen%d", i);
 	xf86MsgVerb(X_WARNING, 0,
 		    "Screen driver %d has no name set, using `%s'.\n",
 		    i, xf86Screens[i]->name);
@@ -709,31 +708,16 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ);
 #endif
       xf86AccessEnter();
-      xf86EnterServerState(SETUP);
+      was_blocked = xf86BlockSIGIO();
     }
   }
-#ifdef SCO325
-  else {
-    /*
-     * Under SCO we must ack that we got the console at startup,
-     * I think this is the safest way to assure it.
-     */
-    static int once = 1;
-    if (once) {
-      once = 0;
-      if (ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ) < 0)
-        xf86Msg(X_WARNING, "VT_ACKACQ failed");
-    }
-  }
-#endif /* SCO325 */
 
   for (i = 0; i < xf86NumScreens; i++)
       if (!xf86ColormapAllocatePrivates(xf86Screens[i]))
 	  FatalError("Cannot register DDX private keys");
 
   if (!dixRegisterPrivateKey(&xf86ScreenKeyRec, PRIVATE_SCREEN, 0) ||
-      !dixRegisterPrivateKey(&xf86CreateRootWindowKeyRec, PRIVATE_SCREEN, 0) ||
-      !dixRegisterPrivateKey(&xf86PixmapKeyRec, PRIVATE_PIXMAP, 0))
+      !dixRegisterPrivateKey(&xf86CreateRootWindowKeyRec, PRIVATE_SCREEN, 0))
       FatalError("Cannot register DDX private keys");
 
   for (i = 0; i < xf86NumScreens; i++) {
@@ -795,7 +779,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
   }
 
-  xf86PostScreenInit();
+  xf86VGAarbiterWrapFunctions();
+  xf86UnblockSIGIO(was_blocked);
 
   xf86InitOrigins();
 
@@ -814,16 +799,14 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput(int argc, char **argv)
 {
-    IDevPtr* pDev;
+    InputInfoPtr* pDev;
     DeviceIntPtr dev;
 
     xf86Info.vtRequestsPending = FALSE;
 
     mieqInit();
 
-    GetEventList(&xf86Events);
-
-    /* Call the PreInit function for each input device instance. */
+    /* Initialize all configured input devices */
     for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
         /* Replace obsolete keyboard driver with kbd */
         if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
@@ -944,6 +927,8 @@ AbortDDX(void)
 {
   int i;
 
+  xf86BlockSIGIO();
+
   /*
    * try to restore the original video state
    */
@@ -952,8 +937,6 @@ AbortDDX(void)
       DPMSSet(serverClient, DPMSModeOn);
 #endif
   if (xf86Screens) {
-      if (xf86Screens[0]->vtSema)
-	  xf86EnterServerState(SETUP);
       for (i = 0; i < xf86NumScreens; i++)
 	  if (xf86Screens[i]->vtSema) {
 	      /*
@@ -1429,8 +1412,10 @@ xf86LoadModules(char **list, pointer *optlist)
 	name = xf86NormalizeName(list[i]);
 
 	/* Skip empty names */
-	if (name == NULL || *name == '\0')
+	if (name == NULL || *name == '\0') {
+	    free(name);
 	    continue;
+	}
 
 	/* Replace obsolete keyboard driver with kbd */
 	if (!xf86NameCmp(name, "keyboard")) {

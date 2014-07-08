@@ -22,9 +22,11 @@ public class AndroiXService extends Service {
     public static AndroiXBlitView blitView;
     private static AndroiXService instance;
     protected static AndroiXLib lib;
+    public static int screenWidth = 800;
+    public static int screenHeight = 480;
 
     public static AndroiXService getService() { return instance; }
-
+    
     @Override
     public void onCreate()
     {
@@ -69,7 +71,16 @@ public class AndroiXService extends Service {
 
         Log.d("AndroiX", "Done extracting /usr");
 
-        lib = new AndroiXLib();
+
+        instance = this;
+    }
+
+    /* service should not restart when it dies */
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId)
+    {
+    	Log.d("AndroiX", "onStartCommand: screen size = (" + screenWidth + "x" + screenHeight + ")");
+        lib = new AndroiXLib(screenWidth, screenHeight);
 
         Log.d("AndroiX", "Waiting for View");
         try { while(AndroiXService.blitView == null) Thread.sleep(250); } catch (InterruptedException e) {};
@@ -80,18 +91,8 @@ public class AndroiXService extends Service {
         Thread mainthread = new Thread(lib, "AndroiX DIX Thread");
         mainthread.setDaemon(true);
         mainthread.start();
-
-        instance = this;
-    }
-
-/* service should not restart when it dies */
-/*
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
         return START_STICKY;
     }
-*/
 
     @Override
     public IBinder onBind(Intent intent)

@@ -16,13 +16,17 @@ JNI_OnLoad(JavaVM *jvm, void *reserved) {
 }
 
 void
-Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz )
+Java_net_homeip_ofn_androix_AndroiXLib_init( JNIEnv* env, jobject thiz, int screenWidth, int screenHeight )
 {
     struct stat stats;
     int mode = 0666;
     
     char argv[] = {":1"};
     char envp[] = {};
+
+    LOG("[androix] init(%d, %d)", screenWidth, screenHeight);
+    Android->screenWidth = screenWidth;
+    Android->screenHeight = screenHeight;
 
     LOG("fixing up /data/data/net.homeip.ofn.androix/usr/bin/xkbcomp");
     chmod("/data/data/net.homeip.ofn.androix/usr/bin/xkbcomp", 0775);
@@ -82,6 +86,16 @@ Java_net_homeip_ofn_androix_AndroiXLib_touchDown( JNIEnv* env, jobject thiz, jin
     LOG("touchDown: mouse: %p x: %d y: %d", mouse, x, y);
     pthread_mutex_lock(Android->events_lock);
     androidCallbackTouchDown((void *)mouse, x, y);
+    pthread_mutex_unlock(Android->events_lock);
+    wakeupFD();
+}
+
+void
+Java_net_homeip_ofn_androix_AndroiXLib_touchMove( JNIEnv* env, jobject thiz, jint mouse, jint x, jint y )
+{
+    LOG("touchMove: mouse: %p x: %d y: %d", mouse, x, y);
+    pthread_mutex_lock(Android->events_lock);
+    androidCallbackTouchMove((void *)mouse, x, y);
     pthread_mutex_unlock(Android->events_lock);
     wakeupFD();
 }

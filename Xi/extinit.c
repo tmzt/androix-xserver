@@ -49,6 +49,7 @@ SOFTWARE.
  *  Dispatch routines and initialization routines for the X input extension.
  *
  */
+#define ARRAY_SIZE(_a)        (sizeof((_a)) / sizeof((_a)[0]))
 
 #define	 NUMTYPES 15
 
@@ -83,7 +84,6 @@ SOFTWARE.
 #include "closedev.h"
 #include "devbell.h"
 #include "getbmap.h"
-#include "getbmap.h"
 #include "getdctl.h"
 #include "getfctl.h"
 #include "getfocus.h"
@@ -91,7 +91,6 @@ SOFTWARE.
 #include "getmmap.h"
 #include "getprop.h"
 #include "getselev.h"
-#include "getvers.h"
 #include "getvers.h"
 #include "grabdev.h"
 #include "grabdevb.h"
@@ -358,7 +357,7 @@ int ChangeDeviceNotify;
 int DevicePresenceNotify;
 int DevicePropertyNotify;
 
-int RT_INPUTCLIENT;
+RESTYPE RT_INPUTCLIENT;
 
 /*****************************************************************
  *
@@ -410,7 +409,7 @@ static int
 ProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data > (IREQUESTS + XI2REQUESTS) || !ProcIVector[stuff->data])
+    if (stuff->data > ARRAY_SIZE(ProcIVector) || !ProcIVector[stuff->data])
         return BadRequest;
 
     return (*ProcIVector[stuff->data])(client);
@@ -429,7 +428,7 @@ static int
 SProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data > IREQUESTS || !SProcIVector[stuff->data])
+    if (stuff->data > ARRAY_SIZE(SProcIVector) || !SProcIVector[stuff->data])
         return BadRequest;
 
     return (*SProcIVector[stuff->data])(client);
@@ -510,7 +509,7 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
         SRepXIQueryDevice(client, len, (xXIQueryDeviceReply*)rep);
     else if (rep->RepType == X_XIGrabDevice)
 	SRepXIGrabDevice(client, len, (xXIGrabDeviceReply *) rep);
-    else if (rep->RepType == X_XIGrabDevice)
+    else if (rep->RepType == X_XIPassiveGrabDevice)
 	SRepXIPassiveGrabDevice(client, len, (xXIPassiveGrabDeviceReply *) rep);
     else if (rep->RepType == X_XIListProperties)
 	SRepXIListProperties(client, len, (xXIListPropertiesReply *) rep);
@@ -757,6 +756,7 @@ static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
     swapl(&to->mods.latched_mods, n);
     swapl(&to->mods.locked_mods, n);
     swapl(&to->mods.effective_mods, n);
+    swapl(&to->flags, n);
 
     ptr = (char*)(&to[1]);
     ptr += from->buttons_len * 4;
@@ -862,6 +862,8 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
     {
         case XI_Enter:
         case XI_Leave:
+        case XI_FocusIn:
+        case XI_FocusOut:
             SDeviceLeaveNotifyEvent((xXILeaveEvent*)from, (xXILeaveEvent*)to);
             break;
         case XI_DeviceChanged:
@@ -1120,8 +1122,6 @@ RestoreExtensionEvents(void)
 static void
 IResetProc(ExtensionEntry * unused)
 {
-    XIResetProperties();
-
     ReplySwapVector[IReqCode] = ReplyNotSwappd;
     EventSwapVector[DeviceValuator] = NotImplemented;
     EventSwapVector[DeviceKeyPress] = NotImplemented;
@@ -1301,6 +1301,8 @@ XInputExtensionInit(void)
 
 	inputInfo.all_devices = &xi_all_devices;
 	inputInfo.all_master_devices = &xi_all_master_devices;
+
+	XIResetProperties();
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }

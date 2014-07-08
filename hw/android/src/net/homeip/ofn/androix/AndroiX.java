@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.Display;
 
 import android.widget.TextView;
 
@@ -25,10 +26,9 @@ public class AndroiX extends Activity
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-//        TextView  tv = new TextView(this);
-//        tv.setText( "no string from jni" );
-//        setContentView(tv);
-
+        Display display = getWindowManager().getDefaultDisplay(); 
+        AndroiXService.screenWidth = display.getWidth();
+        AndroiXService.screenHeight = display.getHeight();
         final Intent intent = new Intent(this, AndroiXService.class);
         startService(intent);
 

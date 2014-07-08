@@ -102,6 +102,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "xf86bigfontsrv.h"
 #endif
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+
 #ifdef DDXOSVERRORF
 void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
 #endif
@@ -121,7 +125,7 @@ static Bool needBuffer = TRUE;
 #include <AvailabilityMacros.h>
 
 static char __crashreporter_info_buff__[4096] = {0};
-static const char *__crashreporter_info__ = &__crashreporter_info_buff__[0];
+static const char *__crashreporter_info__ __attribute__((__used__)) = &__crashreporter_info_buff__[0];
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
 // This is actually a toolchain requirement, but I'm not sure the correct check,        
 // but it should be fine to just only include it for Leopard and later.  This line
@@ -185,11 +189,8 @@ LogInit(const char *fname, const char *backup)
     char *logFileName = NULL;
 
     if (fname && *fname) {
-	/* malloc() can't be used yet. */
-	logFileName = malloc(strlen(fname) + strlen(display) + 1);
-	if (!logFileName)
+	if (asprintf(&logFileName, fname, display) == -1)
 	    FatalError("Cannot allocate space for the log file name\n");
-	sprintf(logFileName, fname, display);
 
 	if (backup && *backup) {
 	    struct stat buf;
@@ -198,13 +199,9 @@ LogInit(const char *fname, const char *backup)
 		char *suffix;
 		char *oldLog;
 
-		oldLog = malloc(strlen(logFileName) + strlen(backup) +
-				strlen(display) + 1);
-		suffix = malloc(strlen(backup) + strlen(display) + 1);
-		if (!oldLog || !suffix)
+		if ((asprintf(&suffix, backup, display) == -1) ||
+		    (asprintf(&oldLog, "%s%s", logFileName, suffix) == -1))
 		    FatalError("Cannot allocate space for the log file name\n");
-		sprintf(suffix, backup, display);
-		sprintf(oldLog, "%s%s", logFileName, suffix);
 		free(suffix);
 		if (rename(logFileName, oldLog) == -1) {
 		    FatalError("Cannot move old log file \"%s\" to \"%s\"\n",
@@ -316,17 +313,10 @@ LogVWrite(int verb, const char *f, va_list args)
 #endif
 	    }
 	} else if (needBuffer) {
-	    /*
-	     * Note, this code is used before OsInit() has been called, so
-	     * malloc() and friends can't be used.
-	     */
 	    if (len > bufferUnused) {
 		bufferSize += 1024;
 		bufferUnused += 1024;
-		if (saveBuffer)
-		    saveBuffer = realloc(saveBuffer, bufferSize);
-		else
-		    saveBuffer = malloc(bufferSize);
+		saveBuffer = realloc(saveBuffer, bufferSize);
 		if (!saveBuffer)
 		    FatalError("realloc() failed while saving log messages\n");
 	    }
@@ -506,8 +496,7 @@ AuditFlush(OsTimerPtr timer, CARD32 now, pointer arg)
 	ErrorF("%slast message repeated %d times\n",
 	       prefix != NULL ? prefix : "", nrepeat);
 	nrepeat = 0;
-	if (prefix != NULL)
-	    free(prefix);
+	free(prefix);
 	return AUDIT_TIMEOUT;
     } else {
 	/* if the timer expires without anything to print, flush the message */
@@ -540,8 +529,7 @@ VAuditF(const char *f, va_list args)
 	nrepeat = 0;
 	auditTimer = TimerSet(auditTimer, 0, AUDIT_TIMEOUT, AuditFlush, NULL);
     }
-    if (prefix != NULL)
-	free(prefix);
+    free(prefix);
 }
 
 void
@@ -557,7 +545,12 @@ FatalError(const char *f, ...)
 
     va_start(args, f);
 #ifdef __APPLE__
-    (void)vsnprintf(__crashreporter_info_buff__, sizeof(__crashreporter_info_buff__), f, args);
+    {
+        va_list args2;
+        va_copy(args2, args);
+        (void)vsnprintf(__crashreporter_info_buff__, sizeof(__crashreporter_info_buff__), f, args2);
+        va_end(args2);
+    }
 #endif
     VErrorF(f, args);
     va_end(args);
@@ -598,21 +591,14 @@ ErrorF(const char * f, ...)
 /* A perror() workalike. */
 
 void
-Error(char *str)
+Error(const char *str)
 {
-    char *err = NULL;
-    int saveErrno = errno;
+    const char *err = strerror(errno);
 
-    if (str) {
-	err = malloc(strlen(strerror(saveErrno)) + strlen(str) + 2 + 1);
-	if (!err)
-	    return;
-	sprintf(err, "%s: ", str);
-	strcat(err, strerror(saveErrno));
+    if (str)
+	LogWrite(-1, "%s: %s", str, err);
+    else
 	LogWrite(-1, "%s", err);
-	free(err);
-    } else
-	LogWrite(-1, "%s", strerror(saveErrno));
 }
 
 void

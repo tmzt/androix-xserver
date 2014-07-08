@@ -746,6 +746,7 @@ AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time)
 	free(oc);
 	return NullClient;
     }
+    oc->local_client = ComputeLocalClient(client);
 #if !defined(WIN32)
     ConnectionTranslation[fd] = client->index;
 #else
@@ -851,15 +852,14 @@ EstablishNewConnections(ClientPtr clientUnused, pointer closure)
 
 	_XSERVTransSetOption(new_trans_conn, TRANS_NONBLOCKING, 1);
 
+	if(trans_conn->flags & TRANS_NOXAUTH)
+	    new_trans_conn->flags = new_trans_conn->flags | TRANS_NOXAUTH;
+
 	if (!AllocNewConnection (new_trans_conn, newconn, connect_time))
 	{
 	    ErrorConnMax(new_trans_conn);
 	    _XSERVTransClose(new_trans_conn);
 	}
-
-	if(trans_conn->flags & TRANS_NOXAUTH)
-	    new_trans_conn->flags = new_trans_conn->flags | TRANS_NOXAUTH;
-
       }
 #ifndef WIN32
     }

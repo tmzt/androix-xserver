@@ -1,4 +1,4 @@
-if AIGLX
+if AIGLX_DRI_LOADER
 GLXDRI_LIBRARY = libglxdri.la
 endif
 
@@ -11,7 +11,6 @@ AM_CFLAGS = \
 	@XLIB_CFLAGS@ \
 	@LIBDRM_CFLAGS@ \
 	@DRIPROTO_CFLAGS@ \
-	-DXFree86Server \
 	@GLX_DEFINES@ \
 	@GLX_ARCH_DEFINES@
 
@@ -41,7 +40,6 @@ glapi_sources =					\
 	indirect_table.c			\
 	dispatch.h				\
 	glapitable.h				\
-	glapitemp.h				\
 	glapi.c					\
 	glapi.h					\
 	glapioffsets.h				\
@@ -50,9 +48,12 @@ glapi_sources =					\
 	glthread.h
 
 libglxdri_la_SOURCES = \
-        glxdri.c \
         extension_string.c \
         extension_string.h
+
+if DRI
+libglxdri_la_SOURCES += glxdri.c
+endif
 
 if DRI2_AIGLX
 libglxdri_la_SOURCES += glxdri2.c
@@ -68,7 +69,6 @@ libglx_la_SOURCES = \
 	indirect_program.c \
 	indirect_table.h \
 	indirect_texture_compression.c \
-        g_disptab.h \
         glxbyteorder.h \
         glxcmds.c \
         glxcmdsswap.c \

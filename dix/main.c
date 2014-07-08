@@ -104,6 +104,7 @@ Equipment Corporation.
 #include "extnsionst.h"
 #include "privates.h"
 #include "registry.h"
+#include "client.h"
 #ifdef PANORAMIX
 #include "panoramiXsrv.h"
 #else
@@ -120,9 +121,9 @@ extern void Dispatch(void);
 #if defined(XQUARTZ) || defined(DDXANDROID)
 #include <pthread.h>
 
-BOOL serverInitComplete = FALSE;
-pthread_mutex_t serverInitCompleteMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t serverInitCompleteCond = PTHREAD_COND_INITIALIZER;
+BOOL serverRunning = FALSE;
+pthread_mutex_t serverRunningMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t serverRunningCond = PTHREAD_COND_INITIALIZER;
 
 int dix_main(int argc, char *argv[], char *envp[]);
 
@@ -137,8 +138,6 @@ int main(int argc, char *argv[], char *envp[])
     display = "0";
 
     InitRegions();
-
-    pixman_disable_out_of_bounds_workaround();
 
     CheckUserParameters(argc, argv, envp);
 
@@ -258,6 +257,7 @@ int main(int argc, char *argv[], char *envp[])
         InitCoreDevices();
 	InitInput(argc, argv);
 	InitAndStartDevices();
+	ReserveClientIds(serverClient);
 
 	dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
 
@@ -274,19 +274,26 @@ int main(int argc, char *argv[], char *envp[])
 	    }
 	}
 
-#ifdef XQUARTZ
-    /* Let the other threads know the server is done with its init */
-    pthread_mutex_lock(&serverInitCompleteMutex);
-    serverInitComplete = TRUE;
-    pthread_cond_broadcast(&serverInitCompleteCond);
-    pthread_mutex_unlock(&serverInitCompleteMutex);
+#if defined(XQUARTZ) || defined(DDXANDROID)
+	/* Let the other threads know the server is done with its init */
+	pthread_mutex_lock(&serverRunningMutex);
+	serverRunning = TRUE;
+	pthread_cond_broadcast(&serverRunningCond);
+	pthread_mutex_unlock(&serverRunningMutex);
 #endif
         
 	NotifyParentProcess();
 
 	Dispatch();
 
-        UndisplayDevices();
+#if defined(XQUARTZ) || defined(DDXANDROID)
+	/* Let the other threads know the server is no longer running */
+	pthread_mutex_lock(&serverRunningMutex);
+	serverRunning = FALSE;
+	pthread_mutex_unlock(&serverRunningMutex);
+#endif
+
+	UndisplayDevices();
 
 	/* Now free up whatever must be freed */
 	if (screenIsSaved == SCREEN_SAVER_ON)
@@ -323,6 +330,7 @@ int main(int argc, char *argv[], char *envp[])
 	    screenInfo.numScreens = i;
 	}
 
+	ReleaseClientIds(serverClient);
 	dixFreePrivates(serverClient->devPrivates, PRIVATE_CLIENT);
 	serverClient->devPrivates = NULL;
 

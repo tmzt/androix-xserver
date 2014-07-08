@@ -236,17 +236,6 @@ OsSignal(int sig, OsSigHandlerPtr handler)
 #define LOCK_PREFIX "/.X"
 #define LOCK_SUFFIX "-lock"
 
-#ifndef PATH_MAX
-#include <sys/param.h>
-#ifndef PATH_MAX
-#ifdef MAXPATHLEN
-#define PATH_MAX MAXPATHLEN
-#else
-#define PATH_MAX 1024
-#endif
-#endif
-#endif
-
 static Bool StillLocking = FALSE;
 static char LockFile[PATH_MAX];
 static Bool nolock = FALSE;
@@ -432,7 +421,21 @@ GetTimeInMillis(void)
 
 #ifdef MONOTONIC_CLOCK
     struct timespec tp;
-    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+    static clockid_t clockid;
+    if (!clockid) {
+#ifdef CLOCK_MONOTONIC_COARSE
+        if (clock_getres(CLOCK_MONOTONIC_COARSE, &tp) == 0 &&
+            (tp.tv_nsec / 1000) <= 1000 &&
+            clock_gettime(CLOCK_MONOTONIC_COARSE, &tp) == 0)
+            clockid = CLOCK_MONOTONIC_COARSE;
+        else
+#endif
+        if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+            clockid = CLOCK_MONOTONIC;
+        else
+            clockid = ~0L;
+    }
+    if (clockid != ~0L && clock_gettime(clockid, &tp) == 0)
         return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000L);
 #endif
 
@@ -501,12 +504,9 @@ void UseMsg(void)
     ErrorF("-ls int                limit stack space to N Kb\n");
 #endif
     ErrorF("-nolock                disable the locking mechanism\n");
-#ifndef NOLOGOHACK
-    ErrorF("-logo                  enable logo in screen saver\n");
-    ErrorF("nologo                 disable logo in screen saver\n");
-#endif
     ErrorF("-nolisten string       don't listen on protocol\n");
     ErrorF("-noreset               don't reset after last client exists\n");
+    ErrorF("-background [none]     create root window with no background\n");
     ErrorF("-reset                 reset after last client exists\n");
     ErrorF("-p #                   screen-saver pattern duration (minutes)\n");
     ErrorF("-pn                    accept failure to listen on all ports\n");
@@ -760,16 +760,6 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 	    nolock = TRUE;
 	}
-#ifndef NOLOGOHACK
-	else if ( strcmp( argv[i], "-logo") == 0)
-	{
-	    logoScreenSaver = 1;
-	}
-	else if ( strcmp( argv[i], "nologo") == 0)
-	{
-	    logoScreenSaver = 0;
-	}
-#endif
 	else if ( strcmp( argv[i], "-nolisten") == 0)
 	{
             if(++i < argc) {
@@ -847,6 +837,14 @@ ProcessCommandLine(int argc, char *argv[])
 	    defaultBackingStore = WhenMapped;
         else if ( strcmp( argv[i], "-wr") == 0)
             whiteRoot = TRUE;
+        else if ( strcmp( argv[i], "-background") == 0) {
+            if(++i < argc) {
+                if (!strcmp ( argv[i], "none"))
+                    bgNoneRoot = TRUE;
+                else
+                    UseMsg();
+            }
+        }
         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
              if(++i < argc) {
                  long reqSizeArg = atol(argv[i]);
@@ -1263,10 +1261,7 @@ System(char *command)
       perror("signal");
       return -1;
     }
-
-#ifdef DEBUG
-    ErrorF("System: `%s'\n", command);
-#endif
+    DebugF("System: `%s'\n", command);
 
     switch (pid = fork()) {
     case -1:	/* error */
@@ -1325,6 +1320,9 @@ Popen(char *command, char *type)
     /* Ignore the smart scheduler while this is going on */
     old_alarm = OsSignal(SIGALRM, SIG_IGN);
     if (old_alarm == SIG_ERR) {
+      close(pdes[0]);
+      close(pdes[1]);
+      free(cur);
       perror("signal");
       return NULL;
     }
@@ -1382,9 +1380,7 @@ Popen(char *command, char *type)
     cur->next = pidlist;
     pidlist = cur;
 
-#ifdef DEBUG
-    ErrorF("Popen: `%s', fp = %p\n", command, iop);
-#endif
+    DebugF("Popen: `%s', fp = %p\n", command, iop);
 
     return iop;
 }
@@ -1459,9 +1455,7 @@ Fopen(char *file, char *type)
     cur->next = pidlist;
     pidlist = cur;
 
-#ifdef DEBUG
-    ErrorF("Fopen(%s), fp = %p\n", file, iop);
-#endif
+    DebugF("Fopen(%s), fp = %p\n", file, iop);
 
     return iop;
 #else
@@ -1490,10 +1484,7 @@ Pclose(pointer iop)
     int pstat;
     int pid;
 
-#ifdef DEBUG
-    ErrorF("Pclose: fp = %p\n", iop);
-#endif
-
+    DebugF("Pclose: fp = %p\n", iop);
     fclose(iop);
 
     for (last = NULL, cur = pidlist; cur; last = cur, cur = cur->next)

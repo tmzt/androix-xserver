@@ -19,6 +19,7 @@ endif
 
 SUBDIRS = \
 	doc \
+	man \
 	include \
 	dix  \
 	fb \
@@ -38,8 +39,7 @@ SUBDIRS = \
 	$(GLX_DIR) \
 	exa \
 	config \
-	hw \
-	test
+	hw
 
 if XORG
 aclocaldir = $(datadir)/aclocal
@@ -68,6 +68,7 @@ dist-hook: ChangeLog INSTALL
 
 DIST_SUBDIRS = \
 	doc \
+	man \
 	include \
 	dix  \
 	fb \

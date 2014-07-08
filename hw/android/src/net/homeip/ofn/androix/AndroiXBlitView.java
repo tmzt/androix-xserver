@@ -1,4 +1,3 @@
-
 package net.homeip.ofn.androix;
 
 import android.app.Activity;
@@ -24,6 +23,19 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     private boolean mCreated = false;
     private boolean mDrawing = false;
 
+    class UiThread implements Runnable {
+    	public void run() {
+            AndroiX.getActivity().setContentView(AndroiXService.blitView);
+            AndroiXService.blitView.setOnKeyListener(AndroiXService.blitView);
+            AndroiXService.blitView.setOnTouchListener(AndroiXService.blitView);
+            AndroiXService.blitView.setFocusable(true);
+            AndroiXService.blitView.setFocusableInTouchMode(true);
+            AndroiXService.blitView.requestFocus();
+            AndroiXService.blitView.resume();
+            AndroiXService.blitView.invalidate();
+    	}
+    }
+    
     public AndroiXBlitView(Context context) {
         super(context);
 
@@ -32,9 +44,6 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
-
-        int W = 800;
-        int H = 480;
 
         //mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGB_565);
     }
@@ -74,19 +83,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
         }
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 
-        AndroiX.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AndroiX.getActivity().setContentView(AndroiXService.blitView);
-                AndroiXService.blitView.setOnKeyListener(AndroiXService.blitView);
-                AndroiXService.blitView.setOnTouchListener(AndroiXService.blitView);
-                AndroiXService.blitView.setFocusable(true);
-                AndroiXService.blitView.setFocusableInTouchMode(true);
-                AndroiXService.blitView.requestFocus();
-                AndroiXService.blitView.resume();
-                AndroiXService.blitView.invalidate();
-            }
-        });
+        AndroiX.getActivity().runOnUiThread(new UiThread());
 
 //      AndroiX.getActivity().setContentView(this);
 
@@ -110,6 +107,8 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
 
     public void resume() {
         mDrawing = true;
+        //draw(0, 0, getWidth(), getHeight());
+        draw(0, 0, 1280, 900);
     }
 
     @Override protected void onDraw(Canvas canvas) {
@@ -135,6 +134,9 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
                 if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
                     AndroiXService.lib.trackballPress(mTrackballPtr);
                     AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
+                } else if(keyCode == KeyEvent.KEYCODE_BACK) {
+                	AndroiX.getActivity().finish();
+                	return true;
                 } else {
                     AndroiXService.lib.keyDown(mKeyboardPtr, keyCode);
                 };
@@ -149,6 +151,7 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
                     AndroiXService.lib.keyUp(mKeyboardPtr, keyCode);
                 };
                 return true;
+            	
             /* not handling multiple keypresses yet */
         };
         return false;
@@ -162,6 +165,10 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
             case MotionEvent.ACTION_DOWN:
                 Log.d("AndroiX", "onTouchEvent: ACTION_DOWN x: " + event.getX() + " y: " + event.getY());
                 AndroiXService.lib.touchDown(mMousePtr, (int)(event.getX()), (int)(event.getY()));
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                Log.d("AndroiX", "onTouchEvent: ACTION_MOVE x: " + event.getX() + " y: " + event.getY());
+                AndroiXService.lib.touchMove(mMousePtr, (int)(event.getX()), (int)(event.getY()));
                 return true;
             case MotionEvent.ACTION_UP:
                 Log.d("AndroiX", "onTouchEvent: ACTION_UP x: " + event.getX() + " y: " + event.getY());
@@ -194,4 +201,3 @@ public class AndroiXBlitView extends View implements View.OnKeyListener, View.On
     }    
 
 }
-

@@ -261,8 +261,8 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->id = devid;
-    dev->public.processInputProc = (ProcessInputProc)NoopDDA;
-    dev->public.realInputProc = (ProcessInputProc)NoopDDA;
+    dev->public.processInputProc = ProcessOtherEvent;
+    dev->public.realInputProc = ProcessOtherEvent;
     dev->public.enqueueInputProc = EnqueueEvent;
     dev->deviceProc = deviceProc;
     dev->startup = autoStart;
@@ -271,6 +271,8 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->deviceGrab.grabTime = currentTime;
     dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
     dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+
+    XkbSetExtension(dev, ProcessKeyboardEvent);
 
     dev->coreEvents = TRUE;
 
@@ -444,7 +446,7 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-            if (other->u.master == dev)
+            if (!IsMaster(other) && GetMaster(other, MASTER_ATTACHED) == dev)
             {
                 AttachDevice(NULL, other, NULL);
                 flags[other->id] |= XISlaveDetached;
@@ -455,8 +457,8 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-	    if (IsMaster(other) && other->u.lastSlave == dev)
-		other->u.lastSlave = NULL;
+	    if (IsMaster(other) && other->lastSlave == dev)
+		other->lastSlave = NULL;
 	}
     }
 
@@ -664,11 +666,13 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices(void)
 {
+    LogMessage(X_DEFAULT, "[devices] InitCoreDevices");
     if (AllocDevicePair(serverClient, "Virtual core",
                         &inputInfo.pointer, &inputInfo.keyboard,
                         CorePointerProc, CoreKeyboardProc,
                         TRUE) != Success)
         FatalError("Failed to allocate core devices");
+    LogMessage(X_DEFAULT, "[devices] InitCoreDevices: %lx", inputInfo.keyboard);
 
     if (ActivateDevice(inputInfo.pointer, TRUE) != Success ||
         ActivateDevice(inputInfo.keyboard, TRUE) != Success)
@@ -936,6 +940,8 @@ CloseDevice(DeviceIntPtr dev)
     }
 
     free(dev->deviceGrab.sync.event);
+    free(dev->config_info);     /* Allocated in xf86ActivateDevice. */
+    dev->config_info = NULL;
     dixFreeObjectWithPrivates(dev, PRIVATE_DEVICE);
 }
 
@@ -985,8 +991,8 @@ CloseDownDevices(void)
      */
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-        if (!IsMaster(dev) && dev->u.master)
-            dev->u.master = NULL;
+        if (!IsMaster(dev) && !IsFloating(dev))
+            dev->master = NULL;
     }
 
     CloseDeviceList(&inputInfo.devices);
@@ -1106,18 +1112,6 @@ NumMotionEvents(void)
     return inputInfo.pointer->valuator->numMotionEvents;
 }
 
-void
-RegisterPointerDevice(DeviceIntPtr device)
-{
-    RegisterOtherDevice(device);
-}
-
-void
-RegisterKeyboardDevice(DeviceIntPtr device)
-{
-    RegisterOtherDevice(device);
-}
-
 int
 dixLookupDevice(DeviceIntPtr *pDev, int id, ClientPtr client, Mask access_mode)
 {
@@ -1229,6 +1223,40 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, Atom* labels,
     return TRUE;
 }
 
+/**
+ * Allocate a valuator class and set up the pointers for the axis values
+ * appropriately.
+ *
+ * @param src If non-NULL, the memory is reallocated from src. If NULL, the
+ * memory is calloc'd.
+ * @parma numAxes Number of axes to allocate.
+ * @return The allocated valuator struct.
+ */
+ValuatorClassPtr
+AllocValuatorClass(ValuatorClassPtr src, int numAxes)
+{
+    ValuatorClassPtr v;
+    /* force alignment with double */
+    union align_u { ValuatorClassRec valc; double d; } *align;
+    int size;
+
+    size = sizeof(union align_u) + numAxes * (sizeof(double) + sizeof(AxisInfo));
+    align = (union align_u *) realloc(src, size);
+
+    if (!align)
+        return NULL;
+
+    if (!src)
+        memset(align, 0, size);
+
+    v = &align->valc;
+    v->numAxes = numAxes;
+    v->axisVal = (double*)(align + 1);
+    v->axes = (AxisInfoPtr)(v->axisVal + numAxes);
+
+    return v;
+}
+
 Bool
 InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
                               int numMotionEvents, int mode)
@@ -1247,11 +1275,9 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
         numAxes = MAX_VALUATORS;
     }
 
-    valc = (ValuatorClassPtr)calloc(1, sizeof(ValuatorClassRec) +
-				    numAxes * sizeof(AxisInfo) +
-				    numAxes * sizeof(double));
+    valc = AllocValuatorClass(NULL, numAxes);
     if (!valc)
-	return FALSE;
+        return FALSE;
 
     valc->sourceid = dev->id;
     valc->motion = NULL;
@@ -1260,17 +1286,17 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
 
     valc->numMotionEvents = numMotionEvents;
     valc->motionHintWindow = NullWindow;
-    valc->numAxes = numAxes;
-    valc->mode = mode;
-    valc->axes = (AxisInfoPtr)(valc + 1);
-    valc->axisVal = (double *)(valc->axes + numAxes);
+
+    if (mode & OutOfProximity)
+        InitProximityClassDeviceStruct(dev);
+
     dev->valuator = valc;
 
     AllocateMotionHistory(dev);
 
     for (i=0; i<numAxes; i++) {
         InitValuatorAxisStruct(dev, i, labels[i], NO_AXIS_LIMITS, NO_AXIS_LIMITS,
-                               0, 0, 0);
+                               0, 0, 0, mode);
 	valc->axisVal[i]=0;
     }
 
@@ -1286,10 +1312,11 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
 
 /* global list of acceleration schemes */
 ValuatorAccelerationRec pointerAccelerationScheme[] = {
-    {PtrAccelNoOp,        NULL, NULL, NULL},
-    {PtrAccelPredictable, acceleratePointerPredictable, NULL, AccelerationDefaultCleanup},
-    {PtrAccelLightweight, acceleratePointerLightweight, NULL, NULL},
-    {-1, NULL, NULL, NULL} /* terminator */
+    {PtrAccelNoOp, NULL, NULL, NULL, NULL},
+    {PtrAccelPredictable, acceleratePointerPredictable, NULL,
+        InitPredictableAccelerationScheme, AccelerationDefaultCleanup},
+    {PtrAccelLightweight, acceleratePointerLightweight, NULL, NULL, NULL},
+    {-1, NULL, NULL, NULL, NULL} /* terminator */
 };
 
 /**
@@ -1301,92 +1328,37 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
                               int scheme)
 {
     int x, i = -1;
-    void* data = NULL;
     ValuatorClassPtr val;
 
     val = dev->valuator;
 
-    if(!val)
-	return FALSE;
-
-    if(IsMaster(dev) && scheme != PtrAccelNoOp)
+    if (!val)
         return FALSE;
 
-    for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
+    if (IsMaster(dev) && scheme != PtrAccelNoOp)
+        return FALSE;
+
+    for (x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
         if(pointerAccelerationScheme[x].number == scheme){
             i = x;
             break;
         }
     }
 
-    if(-1 == i)
+    if (-1 == i)
         return FALSE;
 
     if (val->accelScheme.AccelCleanupProc)
         val->accelScheme.AccelCleanupProc(dev);
 
-    /* init scheme-specific data */
-    switch(scheme){
-        case PtrAccelPredictable:
-        {
-            DeviceVelocityPtr s;
-            s = malloc(sizeof(DeviceVelocityRec));
-            if(!s)
-        	return FALSE;
-            InitVelocityData(s);
-            data = s;
-            break;
+    if (pointerAccelerationScheme[i].AccelInitProc) {
+        if (!pointerAccelerationScheme[i].AccelInitProc(dev,
+                                            &pointerAccelerationScheme[i])) {
+            return FALSE;
         }
-        default:
-            break;
+    } else {
+        val->accelScheme = pointerAccelerationScheme[i];
     }
-
-    val->accelScheme = pointerAccelerationScheme[i];
-    val->accelScheme.accelData = data;
-
-    /* post-init scheme */
-    switch(scheme){
-        case PtrAccelPredictable:
-            InitializePredictableAccelerationProperties(dev);
-            break;
-
-        default:
-            break;
-    }
-
-    return TRUE;
-}
-
-Bool
-InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
-{
-    AbsoluteClassPtr abs;
-
-    abs = malloc(sizeof(AbsoluteClassRec));
-    if (!abs)
-        return FALSE;
-
-    /* we don't do anything sensible with these, but should */
-    abs->min_x = NO_AXIS_LIMITS;
-    abs->min_y = NO_AXIS_LIMITS;
-    abs->max_x = NO_AXIS_LIMITS;
-    abs->max_y = NO_AXIS_LIMITS;
-    abs->flip_x = 0;
-    abs->flip_y = 0;
-    abs->rotation = 0;
-    abs->button_threshold = 0;
-
-    abs->offset_x = 0;
-    abs->offset_y = 0;
-    abs->width = NO_AXIS_LIMITS;
-    abs->height = NO_AXIS_LIMITS;
-    abs->following = 0;
-    abs->screen = 0;
-
-    abs->sourceid = dev->id;
-
-    dev->absolute = abs;
-
     return TRUE;
 }
 
@@ -1671,7 +1643,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
                           stuff->keyCodes, NULL, client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if (IsMaster(tmp) || tmp->u.master != pDev)
+        if (IsMaster(tmp) || GetMaster(tmp, MASTER_KEYBOARD) != pDev)
             continue;
         if (!tmp->key)
             continue;
@@ -2334,7 +2306,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (IsMaster(dev) ||
-            dev->u.master != master ||
+            GetMaster(dev, MASTER_ATTACHED) != master ||
             !dev->button)
             continue;
 
@@ -2367,8 +2339,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
                 event.valuators[i].min = master->valuator->axes[i].min_value;
                 event.valuators[i].max = master->valuator->axes[i].max_value;
                 event.valuators[i].resolution = master->valuator->axes[i].resolution;
-                /* This should, eventually, be a per-axis mode */
-                event.valuators[i].mode = master->valuator->mode;
+                event.valuators[i].mode = master->valuator->axes[i].mode;
                 event.valuators[i].name = master->valuator->axes[i].label;
             }
         }
@@ -2381,6 +2352,46 @@ RecalculateMasterButtons(DeviceIntPtr slave)
 
         XISendDeviceChangedEvent(master, master, &event);
     }
+}
+
+/**
+ * Generate release events for all keys/button currently down on this
+ * device.
+ */
+void
+ReleaseButtonsAndKeys(DeviceIntPtr dev)
+{
+    InternalEvent*      eventlist = InitEventList(GetMaximumEventsNum());
+    ButtonClassPtr      b = dev->button;
+    KeyClassPtr         k = dev->key;
+    int                 i, j, nevents;
+
+    if (!eventlist) /* no release events for you */
+        return;
+
+    /* Release all buttons */
+    for (i = 0; b && i < b->numButtons; i++)
+    {
+        if (BitIsOn(b->down, i))
+        {
+            nevents = GetPointerEvents(eventlist, dev, ButtonRelease, i, 0, NULL);
+            for (j = 0; j < nevents; j++)
+                mieqProcessDeviceEvent(dev, &eventlist[j], NULL);
+        }
+    }
+
+    /* Release all keys */
+    for (i = 0; k && i < MAP_LENGTH; i++)
+    {
+        if (BitIsOn(k->down, i))
+        {
+            nevents = GetKeyboardEvents(eventlist, dev, KeyRelease, i, NULL);
+            for (j = 0; j < nevents; j++)
+                mieqProcessDeviceEvent(dev, &eventlist[j], NULL);
+        }
+    }
+
+    FreeEventList(eventlist, GetMaximumEventsNum());
 }
 
 /**
@@ -2405,19 +2416,19 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         return BadDevice;
 
     /* set from floating to floating? */
-    if (!dev->u.master && !master && dev->enabled)
+    if (IsFloating(dev) && !master && dev->enabled)
         return Success;
 
     /* free the existing sprite. */
-    if (!dev->u.master && dev->spriteInfo->paired == dev)
+    if (IsFloating(dev) && dev->spriteInfo->paired == dev)
     {
         screen = miPointerGetScreen(dev);
         screen->DeviceCursorCleanup(dev, screen);
         free(dev->spriteInfo->sprite);
     }
 
-    oldmaster = dev->u.master;
-    dev->u.master = master;
+    oldmaster = GetMaster(dev, MASTER_ATTACHED);
+    dev->master = master;
 
     /* If device is set to floating, we need to create a sprite for it,
      * otherwise things go bad. However, we don't want to render the cursor,
@@ -2467,8 +2478,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
-    if (!IsMaster(dev) && dev->u.master)
-        dev = dev->u.master;
+    if (!IsMaster(dev) && !IsFloating(dev))
+        dev = GetMaster(dev, MASTER_ATTACHED);
 
     return dev->spriteInfo->paired;
 }
@@ -2481,7 +2492,10 @@ GetPairedDevice(DeviceIntPtr dev)
  * returned master is either the device itself or the paired master device.
  * If dev is a floating slave device, NULL is returned.
  *
- * @type ::MASTER_KEYBOARD or ::MASTER_POINTER
+ * @type ::MASTER_KEYBOARD or ::MASTER_POINTER or ::MASTER_ATTACHED
+ * @return The requested master device. In the case of MASTER_ATTACHED, this
+ * is the directly attached master to this device, regardless of the type.
+ * Otherwise, it is either the master keyboard or pointer for this device.
  */
 DeviceIntPtr
 GetMaster(DeviceIntPtr dev, int which)
@@ -2491,9 +2505,9 @@ GetMaster(DeviceIntPtr dev, int which)
     if (IsMaster(dev))
         master = dev;
     else
-        master = dev->u.master;
+        master = dev->master;
 
-    if (master)
+    if (master && which != MASTER_ATTACHED)
     {
         if (which == MASTER_KEYBOARD)
         {
@@ -2532,9 +2546,11 @@ AllocDevicePair (ClientPtr client, char* name,
     if (!pointer)
         return BadAlloc;
 
-    pointer->name = calloc(strlen(name) + strlen(" pointer") + 1, sizeof(char));
-    strcpy(pointer->name, name);
-    strcat(pointer->name, " pointer");
+    if (asprintf(&pointer->name, "%s pointer", name) == -1) {
+        pointer->name = NULL;
+        RemoveDevice(pointer, FALSE);
+        return BadAlloc;
+    }
 
     pointer->public.processInputProc = ProcessOtherEvent;
     pointer->public.realInputProc = ProcessOtherEvent;
@@ -2544,7 +2560,7 @@ AllocDevicePair (ClientPtr client, char* name,
     pointer->coreEvents = TRUE;
     pointer->spriteInfo->spriteOwner = TRUE;
 
-    pointer->u.lastSlave = NULL;
+    pointer->lastSlave = NULL;
     pointer->last.slave = NULL;
     pointer->type = (master) ? MASTER_POINTER : SLAVE;
 
@@ -2555,9 +2571,12 @@ AllocDevicePair (ClientPtr client, char* name,
         return BadAlloc;
     }
 
-    keyboard->name = calloc(strlen(name) + strlen(" keyboard") + 1, sizeof(char));
-    strcpy(keyboard->name, name);
-    strcat(keyboard->name, " keyboard");
+    if (asprintf(&keyboard->name, "%s keyboard", name) == -1) {
+        keyboard->name = NULL;
+        RemoveDevice(keyboard, FALSE);
+        RemoveDevice(pointer, FALSE);
+        return BadAlloc;
+    }
 
     keyboard->public.processInputProc = ProcessOtherEvent;
     keyboard->public.realInputProc = ProcessOtherEvent;
@@ -2567,7 +2586,7 @@ AllocDevicePair (ClientPtr client, char* name,
     keyboard->coreEvents = TRUE;
     keyboard->spriteInfo->spriteOwner = FALSE;
 
-    keyboard->u.lastSlave = NULL;
+    keyboard->lastSlave = NULL;
     keyboard->last.slave = NULL;
     keyboard->type = (master) ? MASTER_KEYBOARD : SLAVE;
 
@@ -2581,3 +2600,25 @@ AllocDevicePair (ClientPtr client, char* name,
     return Success;
 }
 
+/**
+ * Return Relative or Absolute for the device.
+ */
+int valuator_get_mode(DeviceIntPtr dev, int axis)
+{
+    return (dev->valuator->axes[axis].mode & DeviceMode);
+}
+
+/**
+ * Set the given mode for the axis. If axis is VALUATOR_MODE_ALL_AXES, then
+ * set the mode for all axes.
+ */
+void valuator_set_mode(DeviceIntPtr dev, int axis, int mode)
+{
+    if (axis != VALUATOR_MODE_ALL_AXES)
+        dev->valuator->axes[axis].mode = mode;
+    else {
+        int i;
+        for (i = 0; i < dev->valuator->numAxes; i++)
+            dev->valuator->axes[i].mode = mode;
+    }
+}

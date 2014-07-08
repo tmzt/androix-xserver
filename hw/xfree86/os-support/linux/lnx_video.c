@@ -461,7 +461,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 		   " (0x%08lx,0x%lx) (%s)\n", Base, Size,
 		   strerror(errno));
     }
-    DebugF("base: %lx aligned base: %lx\n",base, base + alignOff);
+    DebugF("base: %lx aligned base: %lx\n",base, (char *)base + alignOff);
     return (char *)base + alignOff;
 }
 #endif /* !(__sparc__) */
@@ -530,6 +530,8 @@ xf86EnableIO(void)
 		return FALSE;
         }
 # if !defined(__alpha__)
+	/* XXX: this is actually not trapping anything because of iopl(3)
+	 * above */
 	ioperm(0x40,4,0); /* trap access to the timer chip */
 	ioperm(0x60,4,0); /* trap access to the keyboard controller */
 # endif
